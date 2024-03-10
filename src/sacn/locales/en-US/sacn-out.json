@@ -1,0 +1,18 @@
+{
+  "sacn-out": {
+    "label": {
+      "interface": "IP-addresse of interface",
+      "port": "port",
+      "priority": "priority",
+      "sourceName": "source-name",
+      "speed": "speed",
+      "speed_24": "very slow (24Hz)",
+      "speed_27": "slow (27Hz)",
+      "speed_30": "medium (30Hz)",
+      "speed_40": "high (40Hz)",
+      "speed_44": "maximum (44Hz)",
+      "speed_once": "once (0Hz)",
+      "universe": "universe"
+    }
+  }
+}

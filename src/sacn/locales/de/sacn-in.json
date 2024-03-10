@@ -1,0 +1,13 @@
+{
+  "sacn-in": {
+    "label": {
+      "interface": "IP-Adresse des Interfaces",
+      "mode": "Modus",
+      "mode_direct": "Direkt",
+      "mode_htp": "HTP",
+      "mode_ltp": "LTP",
+      "port": "Port",
+      "universe": "Universum"
+    }
+  }
+}

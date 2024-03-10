@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "allowJs": false,
+    "noEmitOnError": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "noEmit": false,
+    "importHelpers": true,
+    "preserveWatchOutput": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "preserveConstEnums": true,
+    "forceConsistentCasingInFileNames": true,
+    "newLine": "lf",
+    "types": [
+      "node"
+    ],
+    "baseUrl": "./",
+    "paths": {
+      "*": [
+        "node_modules/*"
+      ]
+    },
+    "rootDir": "ts/",
+    "outDir": "src/"
+  },
+  "include": [
+    "ts/**/*"
+  ]
+}
