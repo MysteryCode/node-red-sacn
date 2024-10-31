@@ -1,3 +1,4 @@
 **/*.js
 extra
 node_modules/**
+/tsconfig.json
