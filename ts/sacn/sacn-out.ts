@@ -25,10 +25,7 @@ interface SenderProps {
 // TODO https://github.com/k-yle/sACN/pull/57
 
 const nodeInit: NodeInitializer = (RED): void => {
-  function SacnOutNodeConstructor(
-    this: Node,
-    config: SacnOutOptions,
-  ): void {
+  function SacnOutNodeConstructor(this: Node, config: SacnOutOptions): void {
     RED.nodes.createNode(this, config);
 
     const options: SenderProps = {
@@ -61,10 +58,7 @@ const nodeInit: NodeInitializer = (RED): void => {
     });
   }
 
-  RED.nodes.registerType(
-    "sacn_out",
-    SacnOutNodeConstructor,
-  );
+  RED.nodes.registerType("sacn_out", SacnOutNodeConstructor);
 };
 
 export default nodeInit;

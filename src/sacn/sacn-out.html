@@ -1,48 +1,60 @@
 <script type="text/html" data-template-name="sacn_out">
-	<div class="form-row">
-		<label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
-		<input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" style="width:70%;">
-	</div>
-	<div class="form-row">
-		<label for="node-input-property"><i class="fa fa-ellipsis-h"></i> <span data-i18n="node-red:common.label.property"></span></label>
-		<input type="text" id="node-input-property" style="width:70%;"/>
-	</div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" style="width:70%;" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-property"
+      ><i class="fa fa-ellipsis-h"></i> <span data-i18n="node-red:common.label.property"></span
+    ></label>
+    <input type="text" id="node-input-property" style="width:70%;" />
+  </div>
 
-	<div class="form-row">
-		<label for="node-input-universe"><i class="fa fa-hashtag"></i> <span data-i18n="sacn-out.label.universe"></span></label>
-		<input type="number" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;"/>
-	</div>
-	<div class="form-row">
-		<label for="node-input-sourceName"><i class="fa fa-hashtag"></i> <span data-i18n="sacn-out.label.sourceName"></span></label>
-		<input type="text" id="node-input-sourceName" maxlength="50" style="width:70%;"/>
-	</div>
-	<div class="form-row">
-		<label for="node-input-speed"><i class="fa fa-tachometer"></i> <span data-i18n="sacn-out.label.speed"></span></label>
-		<select id="node-input-speed" style="width:70%;">
-			<option value="0" selected data-i18n="sacn-out.label.speed_once"></option>
-			<option value="24" data-i18n="sacn-out.label.speed_24"></option>
-			<option value="27" data-i18n="sacn-out.label.speed_27"></option>
-			<option value="30" data-i18n="sacn-out.label.speed_30"></option>
-			<option value="40" data-i18n="sacn-out.label.speed_40"></option>
-			<option value="44" data-i18n="sacn-out.label.speed_44"></option>
-		</select>
-	</div>
-	<div class="form-row">
-		<label for="node-input-priority"><i class="fa fa-sort-numeric-asc "></i> <span data-i18n="sacn-out.label.priority"></span></label>
-		<input type="number" id="node-input-priority" min="1" max="200" step="1" style="width:70%;"/>
-	</div>
-	<div class="form-row">
-		<label for="node-input-interface"><i class="fa fa-plug"></i> <span data-i18n="sacn-out.label.interface"></span></label>
-		<input type="text" id="node-input-interface" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" style="width:70%;"/>
-	</div>
-	<div class="form-row">
-		<label for="node-input-port"><span data-i18n="sacn-out.label.port"></span></label>
-		<input type="number" id="node-input-port" style="width:70%;"/>
-	</div>
+  <div class="form-row">
+    <label for="node-input-universe"
+      ><i class="fa fa-hashtag"></i> <span data-i18n="sacn-out.label.universe"></span
+    ></label>
+    <input type="number" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-sourceName"
+      ><i class="fa fa-hashtag"></i> <span data-i18n="sacn-out.label.sourceName"></span
+    ></label>
+    <input type="text" id="node-input-sourceName" maxlength="50" style="width:70%;" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-speed"
+      ><i class="fa fa-tachometer"></i> <span data-i18n="sacn-out.label.speed"></span
+    ></label>
+    <select id="node-input-speed" style="width:70%;">
+      <option value="0" selected data-i18n="sacn-out.label.speed_once"></option>
+      <option value="24" data-i18n="sacn-out.label.speed_24"></option>
+      <option value="27" data-i18n="sacn-out.label.speed_27"></option>
+      <option value="30" data-i18n="sacn-out.label.speed_30"></option>
+      <option value="40" data-i18n="sacn-out.label.speed_40"></option>
+      <option value="44" data-i18n="sacn-out.label.speed_44"></option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-priority"
+      ><i class="fa fa-sort-numeric-asc "></i> <span data-i18n="sacn-out.label.priority"></span
+    ></label>
+    <input type="number" id="node-input-priority" min="1" max="200" step="1" style="width:70%;" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-interface"
+      ><i class="fa fa-plug"></i> <span data-i18n="sacn-out.label.interface"></span
+    ></label>
+    <input type="text" id="node-input-interface" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" style="width:70%;" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-port"><span data-i18n="sacn-out.label.port"></span></label>
+    <input type="number" id="node-input-port" style="width:70%;" />
+  </div>
 </script>
 
 <script type="text/html" data-help-name="sacn_out">
-	<p>blob!</p>
+  <p>blob!</p>
 </script>
 
 <script type="text/javascript">
@@ -52,27 +64,27 @@
     defaults: {
       universe: {
         value: 1,
-        required: true
+        required: true,
       },
       port: {
         value: 5568,
-        required: false
+        required: false,
       },
       interface: {
         value: "",
-        required: false
+        required: false,
       },
       speed: {
         value: 0,
-        required: true
+        required: true,
       },
       priority: {
         value: 100,
-        required: true
+        required: true,
       },
       sourceName: {
         value: "Node-RED",
-        required: true
+        required: true,
       },
     },
     inputs: 1,
@@ -90,9 +102,9 @@
         $("#node-input-property").val("payload");
       }
       $("#node-input-property").typedInput({
-        default: 'msg',
-        types: ['msg']
+        default: "msg",
+        types: ["msg"],
       });
-    }
+    },
   });
 </script>

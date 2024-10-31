@@ -18,11 +18,9 @@ const nodeInit = (RED) => {
         if (config.mode === "passthrough") {
             sACN = new sacn_1.Receiver(options);
         }
-        else if (config.mode === "ltp") {
-            sACN = new sacn_1.LTPMergingReceiver(options);
-        }
-        else if (config.mode === "htp") {
-            sACN = new sacn_1.HTPMergingReceiver(options);
+        else if (config.mode === "ltp" || config.mode === "htp") {
+            options.mode = config.mode.toUpperCase();
+            sACN = new sacn_1.unstable_MergingReceiver(options);
         }
         else {
             throw new Error("[node-red-sacn] None or invalid mode selected.");
@@ -43,17 +41,23 @@ const nodeInit = (RED) => {
             });
         }
         else if (config.mode === "ltp") {
+            // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
             sACN.on("changed", (data) => {
                 this.send({
+                    // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
                     universe: data.universe,
+                    // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
                     payload: incrementPayload(data.payload),
                 });
             });
         }
         else if (config.mode === "htp") {
+            // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
             sACN.on("changed", (data) => {
                 this.send({
+                    // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
                     universe: data.universe,
+                    // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
                     payload: incrementPayload(data.payload),
                 });
             });

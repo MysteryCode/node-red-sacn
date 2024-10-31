@@ -21,19 +21,13 @@
     "preserveConstEnums": true,
     "forceConsistentCasingInFileNames": true,
     "newLine": "lf",
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "baseUrl": "./",
     "paths": {
-      "*": [
-        "node_modules/*"
-      ]
+      "*": ["node_modules/*"]
     },
     "rootDir": "ts/",
     "outDir": "src/"
   },
-  "include": [
-    "ts/**/*"
-  ]
+  "include": ["ts/**/*"]
 }
