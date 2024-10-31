@@ -27,10 +27,7 @@ interface DMXValues {
 }
 
 const nodeInit: NodeInitializer = (RED): void => {
-  function SacnInNodeConstructor(
-    this: Node,
-    config: SacnInOptions,
-  ): void {
+  function SacnInNodeConstructor(this: Node, config: SacnInOptions): void {
     RED.nodes.createNode(this, config);
 
     const options: ReceiverProps = {
@@ -98,10 +95,7 @@ const nodeInit: NodeInitializer = (RED): void => {
     return result;
   }
 
-  RED.nodes.registerType(
-    "sacn_in",
-    SacnInNodeConstructor,
-  );
+  RED.nodes.registerType("sacn_in", SacnInNodeConstructor);
 };
 
 export default nodeInit;

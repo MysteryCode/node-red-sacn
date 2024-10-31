@@ -1,38 +1,44 @@
 <script type="text/html" data-template-name="sacn_in">
-	<div class="form-row">
-		<label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
-		<input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" style="width:70%;">
-	</div>
-	<div class="form-row">
-		<label for="node-input-property"><i class="fa fa-ellipsis-h"></i> <span data-i18n="node-red:common.label.property"></span></label>
-		<input type="text" id="node-input-property" style="width:70%;"/>
-		<input type="hidden" id="node-input-outputs"/>
-	</div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" style="width:70%;" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-property"
+      ><i class="fa fa-ellipsis-h"></i> <span data-i18n="node-red:common.label.property"></span
+    ></label>
+    <input type="text" id="node-input-property" style="width:70%;" />
+    <input type="hidden" id="node-input-outputs" />
+  </div>
 
-	<div class="form-row">
-		<label for="node-input-universe"><i class="fa fa-hashtag"></i> <span data-i18n="sacn-in.label.universe"></span></label>
-		<input type="text" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;"/>
-	</div>
-	<div class="form-row">
-		<label for="node-input-mode"><i class="fa fa-compress"></i> <span data-i18n="sacn-in.label.mode"></span></label>
-		<select id="node-input-mode" style="width:70%;">
-			<option value="direct" selected data-i18n="sacn-in.label.mode_direct"></option>
-			<option value="htp" data-i18n="sacn-in.label.mode_htp"></option>
-			<option value="ltp" data-i18n="sacn-in.label.mode_ltp"></option>
-		</select>
-	</div>
-	<div class="form-row">
-		<label for="node-input-interface"><i class="fa fa-plug"></i> <span data-i18n="sacn-in.label.interface"></span></label>
-		<input type="text" id="node-input-interface" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" style="width:70%;"/>
-	</div>
-	<div class="form-row">
-		<label for="node-input-port"><span data-i18n="sacn-in.label.port"></span></label>
-		<input type="number" id="node-input-port" style="width:70%;"/>
-	</div>
+  <div class="form-row">
+    <label for="node-input-universe"
+      ><i class="fa fa-hashtag"></i> <span data-i18n="sacn-in.label.universe"></span
+    ></label>
+    <input type="text" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-mode"><i class="fa fa-compress"></i> <span data-i18n="sacn-in.label.mode"></span></label>
+    <select id="node-input-mode" style="width:70%;">
+      <option value="direct" selected data-i18n="sacn-in.label.mode_direct"></option>
+      <option value="htp" data-i18n="sacn-in.label.mode_htp"></option>
+      <option value="ltp" data-i18n="sacn-in.label.mode_ltp"></option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-interface"
+      ><i class="fa fa-plug"></i> <span data-i18n="sacn-in.label.interface"></span
+    ></label>
+    <input type="text" id="node-input-interface" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" style="width:70%;" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-port"><span data-i18n="sacn-in.label.port"></span></label>
+    <input type="number" id="node-input-port" style="width:70%;" />
+  </div>
 </script>
 
 <script type="text/html" data-help-name="sacn_in">
-	<p>blob!</p>
+  <p>blob!</p>
 </script>
 
 <script type="text/javascript">
@@ -42,23 +48,23 @@
     defaults: {
       universe: {
         value: 1,
-        required: true
+        required: true,
       },
       port: {
         value: 5568,
-        required: false
+        required: false,
       },
       interface: {
         value: "",
-        required: false
+        required: false,
       },
       mode: {
         value: "htp",
-        required: true
+        required: true,
       },
       outputs: {
-        value: 1
-      }
+        value: 1,
+      },
     },
     inputs: 0,
     outputs: 1,
@@ -76,17 +82,17 @@
         const outputs = {};
         const universes = $("#node-input-universe").val().replace(" ", "").replace(";", ",").split(",");
         for (const universe of universes) {
-	  outputs[universe] = "Universe " + universe;
-	}
+          outputs[universe] = "Universe " + universe;
+        }
         outputCount.val(JSON.stringify(outputs));
       });
       if (this.property === undefined) {
         $("#node-input-property").val("payload");
       }
       $("#node-input-property").typedInput({
-        default: 'msg',
-        types: ['msg']
+        default: "msg",
+        types: ["msg"],
       });
-    }
+    },
   });
 </script>
