@@ -1,6 +1,5 @@
 import { Node, NodeDef, NodeInitializer } from "node-red";
-import { HTPMergingReceiver, LTPMergingReceiver, Receiver } from "sacn";
-import { ReceiverProps } from "sacn/dist/receiver";
+import { Receiver, unstable_MergingReceiver as MergingReceiver } from "sacn";
 import { NodeMessage } from "@node-red/registry";
 
 interface SacnInOptions extends NodeDef {
@@ -30,7 +29,7 @@ const nodeInit: NodeInitializer = (RED): void => {
   function SacnInNodeConstructor(this: Node, config: SacnInOptions): void {
     RED.nodes.createNode(this, config);
 
-    const options: ReceiverProps = {
+    const options: Receiver.Props | MergingReceiver.Props = {
       universes: [config.universe],
       reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
     };
@@ -44,10 +43,9 @@ const nodeInit: NodeInitializer = (RED): void => {
     let sACN: Receiver;
     if (config.mode === "passthrough") {
       sACN = new Receiver(options);
-    } else if (config.mode === "ltp") {
-      sACN = new LTPMergingReceiver(options);
-    } else if (config.mode === "htp") {
-      sACN = new HTPMergingReceiver(options);
+    } else if (config.mode === "ltp" || config.mode === "htp") {
+      (options as MergingReceiver.Props).mode = config.mode.toUpperCase() as "HTP" | "LTP";
+      sACN = new MergingReceiver(options);
     } else {
       throw new Error("[node-red-sacn] None or invalid mode selected.");
     }
@@ -68,16 +66,22 @@ const nodeInit: NodeInitializer = (RED): void => {
         } as SacnInDirectMessage);
       });
     } else if (config.mode === "ltp") {
-      (sACN as LTPMergingReceiver).on("changed", (data) => {
+      // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
+      (sACN as MergingReceiver).on("changed", (data) => {
         this.send({
+          // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
           universe: data.universe,
+          // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
           payload: incrementPayload(data.payload),
         } as SacnInMessage);
       });
     } else if (config.mode === "htp") {
-      (sACN as HTPMergingReceiver).on("changed", (data) => {
+      // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
+      (sACN as MergingReceiver).on("changed", (data) => {
         this.send({
+          // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
           universe: data.universe,
+          // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
           payload: incrementPayload(data.payload),
         } as SacnInMessage);
       });
