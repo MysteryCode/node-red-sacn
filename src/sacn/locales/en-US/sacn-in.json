@@ -7,7 +7,10 @@
       "mode_htp": "HTP",
       "mode_ltp": "LTP",
       "port": "port",
-      "universe": "universe"
+      "universe": "universe",
+      "output": "output",
+      "output_full": "whole universe",
+      "output_changes": "changes"
     }
   }
 }
