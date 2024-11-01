@@ -3,13 +3,6 @@
     <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
     <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" style="width:70%;" />
   </div>
-  <div class="form-row">
-    <label for="node-input-property"
-      ><i class="fa fa-ellipsis-h"></i> <span data-i18n="node-red:common.label.property"></span
-    ></label>
-    <input type="text" id="node-input-property" style="width:70%;" />
-    <input type="hidden" id="node-input-outputs" />
-  </div>
 
   <div class="form-row">
     <label for="node-input-universe"
@@ -53,12 +46,14 @@
     category: "sACN",
     color: "#dcc515",
     defaults: {
+      name: {
+        value: "Scene-Controller",
+      },
       universe: {
         value: 1,
         required: true,
       },
       port: {
-        value: 5568,
         required: false,
       },
       interface: {
@@ -81,13 +76,13 @@
     outputs: 1,
     paletteLabel: "sACN in",
     icon: "bulb.png",
-    label: () => {
+    label: function () {
       return this.name || "sACN";
     },
-    labelStyle: () => {
+    labelStyle: function () {
       return this.name ? "node_label_italic" : "";
     },
-    oneditprepare: () => {
+    oneditprepare: function () {
       const outputCount = $("#node-input-outputs").val("{}");
       $("#node-input-universe").change(() => {
         const outputs = {};
@@ -96,13 +91,6 @@
           outputs[universe] = "Universe " + universe;
         }
         outputCount.val(JSON.stringify(outputs));
-      });
-      if (this.property === undefined) {
-        $("#node-input-property").val("payload");
-      }
-      $("#node-input-property").typedInput({
-        default: "msg",
-        types: ["msg"],
       });
     },
   });

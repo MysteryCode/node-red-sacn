@@ -43,6 +43,8 @@ const nodeInit: NodeInitializer = (RED): void => {
     }
     if (config.port !== undefined && config.port > 0) {
       options.port = config.port;
+    } else {
+      options.port = 5568;
     }
 
     // internal functions

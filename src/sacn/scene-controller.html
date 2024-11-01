@@ -16,15 +16,19 @@
   RED.nodes.registerType("scene_controller", {
     category: "sACN",
     color: "#dcc515",
-    defaults: {},
+    defaults: {
+      name: {
+        value: "Scene-Controller",
+      },
+    },
     inputs: 1,
     outputs: 1,
     paletteLabel: "Scene-Controller",
     icon: "bulb.png",
-    label: () => {
+    label: function () {
       return this.name || "Scene-Controller";
     },
-    labelStyle: () => {
+    labelStyle: function () {
       return this.name ? "node_label_italic" : "";
     },
   });

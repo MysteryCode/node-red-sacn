@@ -16,6 +16,9 @@ const nodeInit = (RED) => {
         if (config.port !== undefined && config.port > 0) {
             options.port = config.port;
         }
+        else {
+            options.port = 5568;
+        }
         const sACN = new sacn_1.Sender(options);
         this.on("close", () => {
             // close all connections; terminate the receiver
