@@ -190,6 +190,11 @@ const nodeInit = (RED) => {
                 payload: payload,
                 universe: universe,
             });
+            this.status({
+                fill: "green",
+                shape: "dot",
+                text: message.topic ?? `Scene ${message.scene}`,
+            });
         };
         const handleReset = (message) => {
             // TODO
@@ -197,6 +202,11 @@ const nodeInit = (RED) => {
                 this.context().set(`scene-${scene}`, undefined);
                 if (this.context().get("playingScene") === scene) {
                     this.context().set("playingScene", null);
+                    this.status({
+                        fill: "green",
+                        shape: "ring",
+                        text: "Standby",
+                    });
                 }
             };
             if (message.scene) {

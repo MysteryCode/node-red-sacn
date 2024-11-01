@@ -289,6 +289,12 @@ const nodeInit: NodeInitializer = (RED): void => {
         payload: payload,
         universe: universe,
       } as NodeMessageOut);
+
+      this.status({
+        fill: "green",
+        shape: "dot",
+        text: message.topic ?? `Scene ${message.scene}`,
+      });
     };
 
     const handleReset: Executor = (message: NodeMessageIn) => {
@@ -298,6 +304,12 @@ const nodeInit: NodeInitializer = (RED): void => {
 
         if (this.context().get("playingScene") === scene) {
           this.context().set("playingScene", null);
+
+          this.status({
+            fill: "green",
+            shape: "ring",
+            text: "Standby",
+          });
         }
       };
 
