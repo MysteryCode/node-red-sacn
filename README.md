@@ -30,7 +30,7 @@ This node can be used to read one or multiple universes send by sACN.
 #### Parameters:
 
 | Paremeter  | Description                                                                                                                   | Possible Values                                                | Default Value                | Mandatory |
-|------------|-------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|------------------------------|-----------|
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- | --------- |
 | universe   | The universe that is meant to be observed.                                                                                    | `\d+` (`1` to `63999`)                                         | `1`                          | yes       |
 | mode       | Defines whether the node returns the values of every read sACN package (passthrough mode), or merged values using HTP or LTP. | `passthrough`, `htp`, `ltp`                                    | `htp`                        | yes       |
 | output     | Defines wether the node sends only changed values or the whole universe.                                                      | `full`, `changes`                                              | `full`                       | yes       |
@@ -40,7 +40,7 @@ This node can be used to read one or multiple universes send by sACN.
 #### Output for direct-mode:
 
 | Property   | Description                                                                                                                               |
-|------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `sequence` | sACN packets are given a packet sequence number so that the receiver can keep the sequence of packets from a given sender. (`1` to `255`) |
 | `source`   | IP-Address of the sender.                                                                                                                 |
 | `priority` | Priority of the sender. (`1` to `200`)                                                                                                    |
@@ -50,7 +50,7 @@ This node can be used to read one or multiple universes send by sACN.
 #### Output for merging-modes (HTP or LTP):
 
 | Property   | Description                                                                                                                             |
-|------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `universe` | Id of the universe the package is addressed to.                                                                                         |
 | `payload`  | array containing the dmx values as **percentage** by dmx channel. DMX-Channel `1` starts at key `1`, not `0`. (`Array<number, number>`) |
 
@@ -61,7 +61,7 @@ This node can be used to send one universe using sACN.
 #### Parameters:
 
 | Paremeter   | Description                                                               | Possible Values                                                | Default Value                | Mandatory |
-|-------------|---------------------------------------------------------------------------|----------------------------------------------------------------|------------------------------|-----------|
+| ----------- | ------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- | --------- |
 | universe    | The universe that is meant to be observed.                                | `\d+` (`1` to `63999`)                                         | `1`                          | yes       |
 | source-name | The name for the sACN-sender that should be displayed within the network. | _any string below 50 characters_                               | `Node-RED`                   | yes       |
 | speed       | Defines the frequency for sending sACN-packages                           | `once (0Hz)`, `24Hz`, `27Hz`, `30Hz`, `40Hz`, `44Hz`           | `0Hz`                        | yes       |
@@ -72,7 +72,7 @@ This node can be used to send one universe using sACN.
 #### Expected input:
 
 | Property  | Description                                                                                                                             |
-|-----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `payload` | array containing the dmx values as **percentage** by dmx channel. DMX-Channel `1` starts at key `1`, not `0`. (`Array<number, number>`) |
 
 ### Scene-Controller
@@ -81,14 +81,32 @@ This node can be used to record scenes and play them afterwards.
 
 #### Parameters:
 
-| Paremeter   | Description                                                               | Possible Values                                                | Default Value | Mandatory |
-|-------------|---------------------------------------------------------------------------|----------------------------------------------------------------|---------------|-----------|
+| Paremeter | Description | Possible Values | Default Value | Mandatory |
+| --------- | ----------- | --------------- | ------------- | --------- |
 
 #### Expected input:
 
-| Property   | Description                                                                                                                                                                                                                                                                 | Mandatory                       |
-|------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|
-| `action`   | the action to be executed - `save` to save a preset, `play` to play a saved preset, `reset` to reset                                                                                                                                                                        | yes                             |
-| `scene`    | for action                                                                                                                                                                                                                                                                  | yes, for actions `save`, `play` |
-| `universe` | if only one universe is handled, this parameter is mandatory and contains the used universe                                                                                                                                                                                 | yes                             |
+| Property   | Description                                                                                                                                                                                                                                                                          | Mandatory                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| `action`   | the action to be executed - `save` to save a preset, `play` to play a saved preset, `reset` to reset                                                                                                                                                                                 | yes                             |
+| `scene`    | for action                                                                                                                                                                                                                                                                           | yes, for actions `save`, `play` |
+| `universe` | if only one universe is handled, this parameter is mandatory and contains the used universe                                                                                                                                                                                          | yes                             |
 | `payload`  | contains the values to record. it might be an array (key 0-511) containing the values for a single universe,<br/>an object (keys 1-512) containing the values for a single universe or<br/>an object (any numeric keys) containing objects (keys 1-512) containing an universe each. | yes, for action `save`          |
+
+#### Output for single universe:
+
+| Property   | Description                                                                                                                             |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `universe` | ID of the universe the package is addressed to when a single universe is used. (`number`)                                               |
+| `payload`  | Array containing the dmx values as **percentage** by dmx channel. DMX-Channel `1` starts at key `1`, not `0`. (`Array<number, number>`) |
+| `scene`    | The scene that is played (`number`)                                                                                                     |
+| `reset`    | Identifies a reset message for action `reset`, otherwise it does not exist. (`true`)                                                    |
+
+#### Output for multiple universes:
+
+| Property   | Description                                                                                                                       |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `universe` | (`undefined`)                                                                                                                     |
+| `payload`  | Object containing one object per universe. DMX-Channel `1` starts at key `1`, not `0`. (`object<number, object<number, number>>`) |
+| `scene`    | The scene that is played (`number`)                                                                                               |
+| `reset`    | Identifies a reset message for action `reset`, otherwise it does not exist. (`true`)                                              |

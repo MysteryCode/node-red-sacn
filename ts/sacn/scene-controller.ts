@@ -22,6 +22,9 @@ interface NodeMessageIn extends NodeMessageInFlow {
 
 interface NodeMessageOut extends NodeMessage {
   scene: number;
+  reset?: boolean;
+  universe?: number | undefined;
+  payload: DMXValues | Universes;
 }
 
 interface DMXValues {
@@ -297,10 +300,20 @@ const nodeInit: NodeInitializer = (RED): void => {
       });
     };
 
+    const getNulledUniverse = (): DMXValues => {
+      const universe: DMXValues = {};
+
+      for (let ch = 1; ch <= 512; ch++) {
+        universe[ch] = 0;
+      }
+
+      return universe;
+    };
+
     const handleReset: Executor = (message: NodeMessageIn) => {
       // TODO
       const resetScene = (scene: number) => {
-        this.context().set(`scene-${scene}`, undefined);
+        const data: Scene | null = this.context().get(`scene-${scene}`) as Scene | null;
 
         if (this.context().get("playingScene") === scene) {
           this.context().set("playingScene", null);
@@ -310,7 +323,32 @@ const nodeInit: NodeInitializer = (RED): void => {
             shape: "ring",
             text: "Standby",
           });
+
+          if (data) {
+            const universes = Object.keys(data.data);
+            let universe: number | undefined = undefined;
+            let payload: DMXValues | Universes;
+            if (universes.length === 1) {
+              universe = parseInt(universes[0], 10);
+              payload = getNulledUniverse();
+            } else {
+              payload = {};
+              universes.forEach((universe) => {
+                payload[parseInt(universe, 10)] = getNulledUniverse();
+              });
+            }
+
+            this.send({
+              topic: `Scene ${scene}`,
+              scene: scene,
+              payload: payload,
+              universe: universe,
+              reset: true,
+            } as NodeMessageOut);
+          }
         }
+
+        this.context().set(`scene-${scene}`, undefined);
       };
 
       if (message.scene) {

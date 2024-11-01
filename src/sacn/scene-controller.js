@@ -196,10 +196,17 @@ const nodeInit = (RED) => {
                 text: message.topic ?? `Scene ${message.scene}`,
             });
         };
+        const getNulledUniverse = () => {
+            const universe = {};
+            for (let ch = 1; ch <= 512; ch++) {
+                universe[ch] = 0;
+            }
+            return universe;
+        };
         const handleReset = (message) => {
             // TODO
             const resetScene = (scene) => {
-                this.context().set(`scene-${scene}`, undefined);
+                const data = this.context().get(`scene-${scene}`);
                 if (this.context().get("playingScene") === scene) {
                     this.context().set("playingScene", null);
                     this.status({
@@ -207,7 +214,30 @@ const nodeInit = (RED) => {
                         shape: "ring",
                         text: "Standby",
                     });
+                    if (data) {
+                        const universes = Object.keys(data.data);
+                        let universe = undefined;
+                        let payload;
+                        if (universes.length === 1) {
+                            universe = parseInt(universes[0], 10);
+                            payload = getNulledUniverse();
+                        }
+                        else {
+                            payload = {};
+                            universes.forEach((universe) => {
+                                payload[parseInt(universe, 10)] = getNulledUniverse();
+                            });
+                        }
+                        this.send({
+                            topic: `Scene ${scene}`,
+                            scene: scene,
+                            payload: payload,
+                            universe: universe,
+                            reset: true,
+                        });
+                    }
                 }
+                this.context().set(`scene-${scene}`, undefined);
             };
             if (message.scene) {
                 resetScene(message.scene);
