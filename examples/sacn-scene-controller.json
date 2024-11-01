@@ -1,0 +1,302 @@
+[
+    {
+        "id": "5b7a58776b1aebd9",
+        "type": "tab",
+        "label": "sACN Scene-Controller",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c6c769dcfc22bcd6",
+        "type": "sacn_in",
+        "z": "5b7a58776b1aebd9",
+        "universe": 1,
+        "port": 5568,
+        "interface": "",
+        "mode": "htp",
+        "output": "full",
+        "outputs": 1,
+        "x": 130,
+        "y": 60,
+        "wires": [
+            [
+                "798c40460ec6f640"
+            ]
+        ]
+    },
+    {
+        "id": "dd4e607fcf7bc389",
+        "type": "sacn_in",
+        "z": "5b7a58776b1aebd9",
+        "universe": "2",
+        "port": 5568,
+        "interface": "",
+        "mode": "ltp",
+        "output": "full",
+        "outputs": 1,
+        "x": 130,
+        "y": 100,
+        "wires": [
+            [
+                "dbc06a79fc141635",
+                "aeb1f9adbf77d574"
+            ]
+        ]
+    },
+    {
+        "id": "798c40460ec6f640",
+        "type": "change",
+        "z": "5b7a58776b1aebd9",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "universe1",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 60,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1b2939f9c31808ce",
+        "type": "inject",
+        "z": "5b7a58776b1aebd9",
+        "name": "Store Preset 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "save",
+                "vt": "str"
+            },
+            {
+                "p": "scene",
+                "v": "1",
+                "vt": "num"
+            },
+            {
+                "p": "payload"
+            },
+            {
+                "p": "payload[1]",
+                "v": "universe1",
+                "vt": "flow"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 220,
+        "wires": [
+            [
+                "1f18fafd6b0e272e"
+            ]
+        ]
+    },
+    {
+        "id": "dbc06a79fc141635",
+        "type": "change",
+        "z": "5b7a58776b1aebd9",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "universe2",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 420,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1f18fafd6b0e272e",
+        "type": "scene_controller",
+        "z": "5b7a58776b1aebd9",
+        "x": 410,
+        "y": 300,
+        "wires": [
+            [
+                "b353b66ae79cb71b"
+            ]
+        ]
+    },
+    {
+        "id": "0c2a8828c9a12d35",
+        "type": "inject",
+        "z": "5b7a58776b1aebd9",
+        "name": "Store Preset 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "save",
+                "vt": "str"
+            },
+            {
+                "p": "scene",
+                "v": "2",
+                "vt": "num"
+            },
+            {
+                "p": "universe",
+                "v": "1",
+                "vt": "num"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "universe1",
+        "payloadType": "flow",
+        "x": 150,
+        "y": 260,
+        "wires": [
+            [
+                "1f18fafd6b0e272e"
+            ]
+        ]
+    },
+    {
+        "id": "aeb1f9adbf77d574",
+        "type": "sacn_out",
+        "z": "5b7a58776b1aebd9",
+        "universe": "3",
+        "port": 5568,
+        "interface": "",
+        "speed": "30",
+        "priority": 100,
+        "sourceName": "Node-RED",
+        "x": 370,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "b353b66ae79cb71b",
+        "type": "sacn_out",
+        "z": "5b7a58776b1aebd9",
+        "universe": "4",
+        "port": 5568,
+        "interface": "",
+        "speed": "30",
+        "priority": 100,
+        "sourceName": "Node-RED",
+        "x": 710,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "f05b664d2d1894b6",
+        "type": "inject",
+        "z": "5b7a58776b1aebd9",
+        "name": "Play Preset 1",
+        "props": [
+            {
+                "p": "action",
+                "v": "play",
+                "vt": "str"
+            },
+            {
+                "p": "scene",
+                "v": "1",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 340,
+        "wires": [
+            [
+                "1f18fafd6b0e272e"
+            ]
+        ]
+    },
+    {
+        "id": "c74b401033149040",
+        "type": "inject",
+        "z": "5b7a58776b1aebd9",
+        "name": "Play Preset 2",
+        "props": [
+            {
+                "p": "action",
+                "v": "play",
+                "vt": "str"
+            },
+            {
+                "p": "scene",
+                "v": "2",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 380,
+        "wires": [
+            [
+                "1f18fafd6b0e272e"
+            ]
+        ]
+    },
+    {
+        "id": "2370ba2ef9244377",
+        "type": "inject",
+        "z": "5b7a58776b1aebd9",
+        "name": "Stop!",
+        "props": [
+            {
+                "p": "action",
+                "v": "reset",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 130,
+        "y": 440,
+        "wires": [
+            [
+                "1f18fafd6b0e272e"
+            ]
+        ]
+    }
+]
