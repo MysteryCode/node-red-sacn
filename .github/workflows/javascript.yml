@@ -17,9 +17,9 @@ jobs:
       fail-fast: false
     steps:
       - name: Set up node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "22"
       - uses: actions/checkout@v4
       - run: echo "::add-matcher::.github/javascript-syntax.json"
       - name: Remove files to be ignored
