@@ -1,7 +1,7 @@
 {
   "name": "@mysterycode/node-red-sacn",
   "description": "Implementation of sACN (Streaming ACN) for Node-RED",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "MysteryCode",
   "license": "GPL-3.0-only",
   "dependencies": {
