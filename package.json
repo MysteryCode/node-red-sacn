@@ -1,7 +1,7 @@
 {
   "name": "@mysterycode/node-red-sacn",
-  "version": "0.0.1",
   "description": "Implementation of sACN (Streaming ACN) for Node-RED",
+  "version": "0.0.1",
   "author": "MysteryCode",
   "license": "GPL-3.0-only",
   "dependencies": {
@@ -32,7 +32,10 @@
   "keywords": [
     "node-red",
     "sacn",
-    "dmx"
+    "dmx",
+    "lighting",
+    "acn",
+    "e1.31"
   ],
   "node-red": {
     "version": ">=4.0.5",
@@ -48,5 +51,14 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/MysteryCode/node-red-sacn.git"
-  }
+  },
+  "main": "src",
+  "files": [
+    "src",
+    "ts",
+    "examples",
+    "resources",
+    "LICENSE",
+    "README.md"
+  ]
 }
