@@ -4,6 +4,7 @@
   "version": "0.0.2",
   "author": "MysteryCode",
   "license": "GPL-3.0-only",
+  "private": false,
   "dependencies": {
     "sacn": "^4.6.0"
   },
@@ -24,7 +25,8 @@
   "scripts": {
     "prettier:fix": "prettier --ignore-path .eslintignore --write '**/*.{js,ts,md}'",
     "lint:fix": "eslint --fix",
-    "build": "npm run prettier:fix && npm run lint:fix && tsc"
+    "build": "tsc && node build.js",
+    "prepack": "npm run prettier:fix && npm run lint:fix && npm run build"
   },
   "keywords": [
     "node-red",
@@ -37,9 +39,9 @@
   "node-red": {
     "version": ">=4.0.5",
     "nodes": {
-      "sacn_in": "src/sacn/sacn-in.js",
-      "sacn_out": "src/sacn/sacn-out.js",
-      "scene_controller": "src/sacn/scene-controller.js"
+      "sacn-in": "dist/nodes/sacn-in/sacn-in.js",
+      "sacn-out": "dist/nodes/sacn-out/sacn-out.js",
+      "scene-controller": "dist/nodes/scene-controller/scene-controller.js"
     }
   },
   "engines": {
@@ -49,10 +51,10 @@
     "type": "git",
     "url": "https://github.com/MysteryCode/node-red-sacn.git"
   },
-  "main": "src",
+  "main": "dist",
   "files": [
     "src",
-    "ts",
+    "dist",
     "examples",
     "resources",
     "LICENSE",

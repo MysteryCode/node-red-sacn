@@ -1,0 +1,92 @@
+<script type="text/html" data-template-name="sacn-in">
+    <div class="form-row">
+        <label for="node-input-name">
+            <i class="fa fa-tag"></i>
+            <span data-i18n="node-red:common.label.name"></span>
+        </label>
+        <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" style="width:70%;"/>
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-universe">
+            <i class="fa fa-hashtag"></i>
+            <span data-i18n="sacn-in.label.universe"></span>
+        </label>
+        <input type="text" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;"/>
+    </div>
+    <div class="form-row">
+        <label for="node-input-mode">
+            <i class="fa fa-compress"></i>
+            <span data-i18n="sacn-in.label.mode"></span>
+        </label>
+        <select id="node-input-mode" style="width:70%;">
+            <option value="passthrough" selected data-i18n="sacn-in.label.mode_direct"></option>
+            <option value="htp" data-i18n="sacn-in.label.mode_htp"></option>
+            <option value="ltp" data-i18n="sacn-in.label.mode_ltp"></option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-output">
+            <i class="fa fa-compress"></i>
+            <span data-i18n="sacn-in.label.output"></span>
+        </label>
+        <select id="node-input-output" style="width:70%;">
+            <option value="full" selected data-i18n="sacn-in.label.output_full"></option>
+            <option value="changes" data-i18n="sacn-in.label.output_changes"></option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-interface">
+            <i class="fa fa-plug"></i>
+            <span data-i18n="sacn-in.label.interface"></span>
+        </label>
+        <input type="text" id="node-input-interface" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" style="width:70%;"/>
+    </div>
+    <div class="form-row">
+        <label for="node-input-port">
+            <span data-i18n="sacn-in.label.port"></span>
+        </label>
+        <input type="number" id="node-input-port" style="width:70%;"/>
+    </div>
+</script>
+<script type="text/javascript">
+    RED.nodes.registerType("sacn-in", {
+        category: "sACN",
+        color: "#dcc515",
+        defaults: {
+            name: {
+                value: "Scene-Controller",
+            },
+            universe: {
+                value: 1,
+                required: true,
+            },
+            port: {
+                value: undefined,
+                required: false,
+            },
+            interface: {
+                value: "",
+                required: false,
+            },
+            mode: {
+                value: "htp",
+                required: true,
+            },
+            output: {
+                value: "full",
+                required: true,
+            },
+        },
+        inputs: 0,
+        outputs: 1,
+        paletteLabel: "sACN in",
+        icon: "font-awesome/fa-lightbulb-o",
+        label: function () {
+            return this.name || "sACN";
+        },
+        labelStyle: function () {
+            return this.name ? "node_label_italic" : "";
+        },
+    });
+</script>

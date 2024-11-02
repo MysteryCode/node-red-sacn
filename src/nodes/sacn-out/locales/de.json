@@ -1,0 +1,16 @@
+{
+  "label": {
+    "interface": "IP-Adresse des Interfaces",
+    "port": "Port",
+    "priority": "Priorität",
+    "sourceName": "Sender-Name",
+    "speed": "Geschwindigkeit",
+    "speed_24": "Sehr langsam (24Hz)",
+    "speed_27": "Langsam (27Hz)",
+    "speed_30": "Mittel (30Hz)",
+    "speed_40": "Hoch (40Hz)",
+    "speed_44": "Maximum (44Hz)",
+    "speed_once": "Einmalig (0Hz)",
+    "universe": "Universum"
+  }
+}

@@ -5,8 +5,8 @@
     "target": "ES2022",
     "allowJs": false,
     "noEmitOnError": true,
-    "sourceMap": true,
-    "removeComments": false,
+    "sourceMap": false,
+    "removeComments": true,
     "noEmit": false,
     "importHelpers": true,
     "preserveWatchOutput": true,
@@ -21,13 +21,19 @@
     "preserveConstEnums": true,
     "forceConsistentCasingInFileNames": true,
     "newLine": "lf",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "baseUrl": "./",
     "paths": {
-      "*": ["node_modules/*"]
+      "*": [
+        "node_modules/*"
+      ]
     },
-    "rootDir": "ts/",
-    "outDir": "src/"
+    "rootDir": "src/",
+    "outDir": "dist/"
   },
-  "include": ["ts/**/*"]
+  "exclude": [
+    "src/**/init.ts"
+  ]
 }

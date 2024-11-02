@@ -1,0 +1,14 @@
+{
+  "label": {
+    "interface": "IP-Adresse des Interfaces",
+    "mode": "Modus",
+    "mode_direct": "Direkt",
+    "mode_htp": "HTP",
+    "mode_ltp": "LTP",
+    "port": "Port",
+    "universe": "Universum",
+    "output": "Ausgabe",
+    "output_full": "Vollständiges Universum",
+    "output_changes": "Änderungen"
+  }
+}

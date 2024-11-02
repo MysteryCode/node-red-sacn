@@ -9,7 +9,7 @@
     },
     {
         "id": "c6c769dcfc22bcd6",
-        "type": "sacn_in",
+        "type": "sacn-in",
         "z": "5b7a58776b1aebd9",
         "universe": 1,
         "port": "",
@@ -27,7 +27,7 @@
     },
     {
         "id": "dd4e607fcf7bc389",
-        "type": "sacn_in",
+        "type": "sacn-in",
         "z": "5b7a58776b1aebd9",
         "universe": "2",
         "port": "",
@@ -136,7 +136,7 @@
     },
     {
         "id": "1f18fafd6b0e272e",
-        "type": "scene_controller",
+        "type": "scene-controller",
         "z": "5b7a58776b1aebd9",
         "x": 410,
         "y": 300,
@@ -188,7 +188,7 @@
     },
     {
         "id": "aeb1f9adbf77d574",
-        "type": "sacn_out",
+        "type": "sacn-out",
         "z": "5b7a58776b1aebd9",
         "universe": "3",
         "port": "",
@@ -202,7 +202,7 @@
     },
     {
         "id": "b353b66ae79cb71b",
-        "type": "sacn_out",
+        "type": "sacn-out",
         "z": "5b7a58776b1aebd9",
         "universe": "4",
         "port": "",

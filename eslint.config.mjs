@@ -19,6 +19,7 @@ export default [{
     "**/extra",
     "node_modules/**/*",
     "tsconfig.json",
+    "build.tsconfig.json",
     "eslint.config.mjs"
   ]
 }, ...compat.extends(
@@ -37,8 +38,10 @@ export default [{
     sourceType: "script",
 
     parserOptions: {
-      tsconfigRootDir: "C:\\Users\\flori\\PhpStormProjects\\node-red-sacn",
-      project: true
+      project: [
+        "tsconfig.json",
+        "build.tsconfig.json"
+      ],
     }
   },
 
