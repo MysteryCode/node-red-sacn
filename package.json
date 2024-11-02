@@ -17,17 +17,14 @@
     "eslint": "^9.13.0",
     "eslint-config-prettier": "^9.1.0",
     "node-red": "^4.0.5",
-    "nodemon": "^3.1.7",
     "prettier": "^3.3.3",
     "tslib": "^2.8.0",
     "typescript": "^5.6.3"
   },
   "scripts": {
-    "prettier": "prettier --ignore-path .eslintignore --check '**/*.{js,ts,md}'",
-    "lint": "eslint",
     "prettier:fix": "prettier --ignore-path .eslintignore --write '**/*.{js,ts,md}'",
     "lint:fix": "eslint --fix",
-    "build": "tsc"
+    "build": "npm run prettier:fix && npm run lint:fix && tsc"
   },
   "keywords": [
     "node-red",
