@@ -44,6 +44,9 @@
       "scene_controller": "src/sacn/scene-controller.js"
     }
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com//MysteryCode/node-red-sacn.git"
