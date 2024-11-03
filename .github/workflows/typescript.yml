@@ -53,7 +53,7 @@ jobs:
           node-version: "22"
           cache: "npm"
       - run: npm install
-      - run: rm -R src/**/*.js
+      - run: rm -R dist/**/*.js
       - run: |
           npx tsc
       - run: echo "::add-matcher::.github/diff.json"

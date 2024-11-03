@@ -26,7 +26,7 @@ jobs:
         run: |
           true
       - run: |
-          ! find src/ -type f -name '*.js' -exec node -c '{}' \; 2>&1 \
+          ! find dist/ -type f -name '*.js' -exec node -c '{}' \; 2>&1 \
             |awk 'BEGIN {m=0} /(.js):[0-9]+$/ {m=1; printf "%s - ",$0} m==1 && /^SyntaxError/ { m=0; print }' \
             |sed "s@$(pwd)@.@" \
             |grep '^'
