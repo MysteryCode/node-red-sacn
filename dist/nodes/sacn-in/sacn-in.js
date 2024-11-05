@@ -53,7 +53,7 @@ class NodeHandler {
             this.sACN.on("changed", (data) => {
                 this.node.send({
                     universe: data.universe,
-                    payload: parsePayload(data.payload, data.universe),
+                    payload: this.parsePayload(data.payload, data.universe),
                 });
             });
         }
@@ -61,7 +61,7 @@ class NodeHandler {
             this.sACN.on("changed", (data) => {
                 this.node.send({
                     universe: data.universe,
-                    payload: parsePayload(data.payload, data.universe),
+                    payload: this.parsePayload(data.payload, data.universe),
                 });
             });
         }

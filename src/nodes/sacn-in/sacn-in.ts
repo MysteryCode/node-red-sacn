@@ -1,6 +1,6 @@
 import { Node, NodeAPI, NodeDef } from "node-red";
 import { NodeMessage } from "@node-red/registry";
-import { Receiver, unstable_MergingReceiver as MergingReceiver } from "sacn";
+import { Packet, Receiver, unstable_MergingReceiver as MergingReceiver } from "sacn";
 
 interface DMXValues {
   [key: number]: number | undefined;
@@ -77,7 +77,7 @@ class NodeHandler {
 
     // handle sacn packets
     if (config.mode === "passthrough") {
-      this.sACN.on("packet", (packet) => {
+      (this.sACN as Receiver).on("packet", (packet: Packet) => {
         this.node.send({
           universe: packet.universe,
           payload: this.parsePayload(packet.payload, packet.universe),
@@ -87,23 +87,17 @@ class NodeHandler {
         } as DirectMessageIn);
       });
     } else if (config.mode === "ltp") {
-      // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
       (this.sACN as MergingReceiver).on("changed", (data) => {
         this.node.send({
-          // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
           universe: data.universe,
-          // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
-          payload: parsePayload(data.payload, data.universe),
+          payload: this.parsePayload(data.payload, data.universe),
         } as MessageIn);
       });
     } else if (config.mode === "htp") {
-      // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
       (this.sACN as MergingReceiver).on("changed", (data) => {
         this.node.send({
-          // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
           universe: data.universe,
-          // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
-          payload: parsePayload(data.payload, data.universe),
+          payload: this.parsePayload(data.payload, data.universe),
         } as MessageIn);
       });
     }
