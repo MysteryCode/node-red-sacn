@@ -88,7 +88,7 @@ class NodeHandler {
       });
     } else if (config.mode === "ltp") {
       // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
-      (sACN as MergingReceiver).on("changed", (data) => {
+      (this.sACN as MergingReceiver).on("changed", (data) => {
         this.node.send({
           // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
           universe: data.universe,
@@ -98,7 +98,7 @@ class NodeHandler {
       });
     } else if (config.mode === "htp") {
       // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
-      (sACN as MergingReceiver).on("changed", (data) => {
+      (this.sACN as MergingReceiver).on("changed", (data) => {
         this.node.send({
           // @ts-expect-error // TODO https://github.com/k-yle/sACN/pull/63
           universe: data.universe,

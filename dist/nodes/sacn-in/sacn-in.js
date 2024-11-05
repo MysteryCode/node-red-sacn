@@ -50,7 +50,7 @@ class NodeHandler {
             });
         }
         else if (config.mode === "ltp") {
-            sACN.on("changed", (data) => {
+            this.sACN.on("changed", (data) => {
                 this.node.send({
                     universe: data.universe,
                     payload: parsePayload(data.payload, data.universe),
@@ -58,7 +58,7 @@ class NodeHandler {
             });
         }
         else if (config.mode === "htp") {
-            sACN.on("changed", (data) => {
+            this.sACN.on("changed", (data) => {
                 this.node.send({
                     universe: data.universe,
                     payload: parsePayload(data.payload, data.universe),
