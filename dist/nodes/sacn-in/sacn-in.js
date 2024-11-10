@@ -83,7 +83,7 @@ class NodeHandler {
         const processedPayload = this.getReference(universe);
         Object.keys(payload).forEach((key) => {
             const ch = parseInt(key, 10);
-            processedPayload[ch + 1] = payload[ch];
+            processedPayload[ch] = payload[ch];
         });
         if (this.config.output !== "changes") {
             this.data?.set(universe, processedPayload);
