@@ -11,35 +11,22 @@ const {
   mkdirSync,
   realpathSync,
 } = require("node:fs");
-const nodesSourceDir = cwd() + "/src/nodes";
-const nodesTargetDir = cwd() + "/dist/nodes";
+const sourcePath = cwd() + "/src";
+const targetPath = cwd() + "/dist";
 const buildTsConfig = JSON.parse(readFileSync("build.tsconfig.json").toString());
-
-function makeDir(dir) {
-  if (!existsSync(dir)) {
-    console.log(dir);
-    const parentDir = realpathSync(`${dir}../`);
-    console.log(parentDir);
-    if (!existsSync(parentDir)) {
-      makeDir(parentDir);
-    }
-
-    mkdirSync(dir);
-  }
-}
 
 /**
  * @param node String
- * @param sourcePath String
- * @param targetPath String
+ * @param source String
+ * @param target String
  */
-function buildForm(node, sourcePath, targetPath) {
+function buildNodeForm(node, source, target) {
   /**
    * @type {string[]}
    */
   const html = [];
-  const form = readFileSync(`${sourcePath}/form.html`).toString();
-  const docs = existsSync(`${sourcePath}/docs.html`) ? readFileSync(`${sourcePath}/docs.html`).toString() : undefined;
+  const form = readFileSync(`${source}/form.html`).toString();
+  const docs = existsSync(`${source}/docs.html`) ? readFileSync(`${source}/docs.html`).toString() : undefined;
 
   const formLines = form.split("\n");
   html.push(`<script type="text/html" data-template-name="${node}">`);
@@ -61,7 +48,7 @@ function buildForm(node, sourcePath, targetPath) {
     html.push("</script>");
   }
 
-  const initTS = readFileSync(`${sourcePath}/init.ts`).toString();
+  const initTS = readFileSync(`${source}/init.ts`).toString();
   let initJS = ts
     .transpileModule(initTS, buildTsConfig)
     .outputText.replace(/export \{(?:[^\}]+)?\};/gim, "")
@@ -78,24 +65,24 @@ function buildForm(node, sourcePath, targetPath) {
 
   html.push("");
 
-  mkdirSync(`${targetPath}/`, {
+  mkdirSync(`${target}/`, {
     recursive: true,
   });
 
-  writeFileSync(`${targetPath}/${node}.html`, html.join("\n"));
+  writeFileSync(`${target}/${node}.html`, html.join("\n"));
 }
 
 /**
  * @param node String
- * @param sourcePath String
- * @param targetPath String
+ * @param source String
+ * @param target String
  */
-function copyLocales(node, sourcePath, targetPath) {
-  if (!existsSync(`${sourcePath}/locales`)) {
+function copyNodeLocales(node, source, target) {
+  if (!existsSync(`${source}/locales`)) {
     return;
   }
 
-  readdirSync(`${sourcePath}/locales`, {
+  readdirSync(`${source}/locales`, {
     recursive: false,
   })
     .filter((language) => {
@@ -103,7 +90,7 @@ function copyLocales(node, sourcePath, targetPath) {
     })
     .forEach((language) => {
       const languageCode = language.match(/^([a-z]{2,2}(?:-[A-Z]{2,2})?)\.json$/i)[1];
-      const content = readFileSync(`${sourcePath}/locales/${language}`).toString();
+      const content = readFileSync(`${source}/locales/${language}`).toString();
 
       /**
        * @type {string[]}
@@ -120,27 +107,75 @@ function copyLocales(node, sourcePath, targetPath) {
       });
       json.push("}");
 
-      mkdirSync(`${targetPath}/locales/${languageCode}`, {
+      mkdirSync(`${target}/locales/${languageCode}`, {
         recursive: true,
       });
 
-      writeFileSync(`${targetPath}/locales/${languageCode}/${node}.json`, json.join("\n"));
+      writeFileSync(`${target}/locales/${languageCode}/${node}.json`, json.join("\n"));
     });
 }
 
-readdirSync(nodesSourceDir, {
-  recursive: false,
-})
-  .filter((node) => {
-    const path = `${nodesSourceDir}/${node}`;
-
-    return existsSync(`${path}/form.html`) && existsSync(`${path}/${node}.ts`);
+function buildNodes() {
+  readdirSync(`${sourcePath}/nodes`, {
+    recursive: false,
   })
-  .forEach((node) => {
-    const sourcePath = `${nodesSourceDir}/${node}`;
-    const targetPath = `${nodesTargetDir}/${node}`;
+    .filter((node) => {
+      const path = `${sourcePath}/nodes/${node}`;
 
-    buildForm(node, sourcePath, targetPath);
+      return existsSync(`${path}/form.html`) && existsSync(`${path}/${node}.ts`);
+    })
+    .forEach((node) => {
+      console.info(`Building node ${node}`);
 
-    copyLocales(node, sourcePath, targetPath);
-  });
+      const source = `${sourcePath}/nodes/${node}`;
+      const target = `${targetPath}/nodes/${node}`;
+
+      buildNodeForm(node, source, target);
+
+      copyNodeLocales(node, source, target);
+    });
+}
+
+function buildPlugins() {
+  readdirSync(`${sourcePath}/plugins`, {
+    recursive: false,
+  })
+    .filter((plugin) => {
+      const path = `${sourcePath}/plugins/${plugin}`;
+
+      return existsSync(`${path}/${plugin}.ts`);
+    })
+    .forEach((plugin) => {
+      console.info(`Building plugin ${plugin}`);
+
+      // does nothing yet
+    });
+}
+
+function buildThemes() {
+  readdirSync(`${sourcePath}/themes`, {
+    recursive: false,
+  })
+    .filter((theme) => {
+      const path = `${sourcePath}/themes/${theme}`;
+
+      return existsSync(`${path}/${theme}.ts`);
+    })
+    .forEach((theme) => {
+      console.info(`Building theme ${theme}`);
+
+      // does nothing yet
+    });
+}
+
+if (existsSync(`${sourcePath}/plugins`)) {
+  buildPlugins();
+}
+
+if (existsSync(`${sourcePath}/nodes`)) {
+  buildNodes();
+}
+
+if (existsSync(`${sourcePath}/themes`)) {
+  buildThemes();
+}
