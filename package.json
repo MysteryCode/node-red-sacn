@@ -53,7 +53,6 @@
   },
   "main": "dist",
   "files": [
-    "src",
     "dist",
     "examples",
     "resources",
