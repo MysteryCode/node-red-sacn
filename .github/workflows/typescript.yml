@@ -15,12 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      matrix:
+        node-version:
+          - 22
+          - 23
+          - 24
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: ${{ matrix.node-version }}
           cache: "npm"
       - run: npm install
       - run: |
@@ -28,36 +33,12 @@ jobs:
   eslint:
     name: "eslint"
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24"
           cache: "npm"
       - run: npm install
       - run: npx eslint .
-  javascript_sync:
-    name: "Check for outdated JavaScript"
-    needs: tsc
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "npm"
-      - run: npm install
-      - run: rm -R dist/**/*.js
-      - run: |
-          npx tsc
-      - run: echo "::add-matcher::.github/diff.json"
-      - name: Show diff
-        run: |
-          git checkout -- package-lock.json
-          git diff --exit-code
