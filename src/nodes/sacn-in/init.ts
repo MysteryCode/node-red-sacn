@@ -38,7 +38,7 @@ const def: EditorNodeDef<Defaults> = {
       required: true,
     },
   },
-  inputs: 0,
+  inputs: 1,
   outputs: 1,
   paletteLabel: "sACN in",
   icon: "font-awesome/fa-lightbulb-o",

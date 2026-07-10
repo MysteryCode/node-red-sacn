@@ -6,9 +6,11 @@ class NodeHandler {
     config;
     data = new Map();
     sACN;
+    currentUniverse;
     constructor(node, config) {
         this.node = node;
         this.config = config;
+        this.currentUniverse = config.universe;
         const options = {
             universes: [config.universe],
             reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
@@ -65,6 +67,39 @@ class NodeHandler {
                 });
             });
         }
+        this.node.on("input", (msg) => {
+            this.handleUniverseChange(msg);
+        });
+        this.setStatus();
+    }
+    setStatus() {
+        this.node.status({
+            fill: "green",
+            shape: "dot",
+            text: `Universe ${this.currentUniverse}`,
+        });
+    }
+    parseUniverse(value) {
+        const universe = typeof value === "string" ? parseInt(value, 10) : value;
+        if (typeof universe !== "number" || !Number.isInteger(universe) || universe < 1 || universe > 63999) {
+            return undefined;
+        }
+        return universe;
+    }
+    handleUniverseChange(msg) {
+        const universe = this.parseUniverse(msg.universe);
+        if (universe === undefined) {
+            this.node.warn(`The given "universe"-property "${msg.universe}" (${typeof msg.universe}) is invalid or not between 1 and 63999.`);
+            return;
+        }
+        if (universe === this.currentUniverse) {
+            return;
+        }
+        this.sACN.removeUniverse(this.currentUniverse);
+        this.sACN.addUniverse(universe);
+        this.data?.delete(this.currentUniverse);
+        this.currentUniverse = universe;
+        this.setStatus();
     }
     getNulledUniverse() {
         const universe = {};

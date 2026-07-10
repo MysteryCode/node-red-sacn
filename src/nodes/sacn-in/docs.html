@@ -27,6 +27,16 @@
     <dd>Network port to listen on. Defaults to <code>5568</code>.</dd>
 </dl>
 
+<h3>Inputs</h3>
+<dl class="message-properties">
+    <dt>universe <span class="property-type">number</span></dt>
+    <dd>
+        Switches the observed universe at runtime, <code>1</code> to <code>63999</code>. The node stops
+        listening on the previous universe and starts listening on the new one. Invalid values are
+        ignored and produce a warning.
+    </dd>
+</dl>
+
 <h3>Outputs</h3>
 <p>The properties emitted depend on the selected mode.</p>
 

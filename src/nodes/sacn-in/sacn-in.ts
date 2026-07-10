@@ -35,9 +35,12 @@ class NodeHandler {
 
   protected sACN: Receiver;
 
+  protected currentUniverse: number;
+
   constructor(node: Node<Config>, config: Config) {
     this.node = node;
     this.config = config;
+    this.currentUniverse = config.universe;
 
     // parse options for receiver instance
     const options: Receiver.Props | MergingReceiver.Props = {
@@ -101,6 +104,56 @@ class NodeHandler {
         });
       });
     }
+
+    // allow switching the observed universe at runtime via msg.universe
+    this.node.on("input", (msg) => {
+      this.handleUniverseChange(msg as MessageIn);
+    });
+
+    this.setStatus();
+  }
+
+  protected setStatus(): void {
+    this.node.status({
+      fill: "green",
+      shape: "dot",
+      text: `Universe ${this.currentUniverse}`,
+    });
+  }
+
+  protected parseUniverse(value: unknown): number | undefined {
+    const universe = typeof value === "string" ? parseInt(value, 10) : value;
+
+    if (typeof universe !== "number" || !Number.isInteger(universe) || universe < 1 || universe > 63999) {
+      return undefined;
+    }
+
+    return universe;
+  }
+
+  protected handleUniverseChange(msg: MessageIn): void {
+    const universe = this.parseUniverse(msg.universe);
+
+    if (universe === undefined) {
+      this.node.warn(
+        `The given "universe"-property "${msg.universe}" (${typeof msg.universe}) is invalid or not between 1 and 63999.`,
+      );
+
+      return;
+    }
+
+    if (universe === this.currentUniverse) {
+      return;
+    }
+
+    this.sACN.removeUniverse(this.currentUniverse);
+    this.sACN.addUniverse(universe);
+
+    // drop the cached state of the previously observed universe
+    this.data?.delete(this.currentUniverse);
+
+    this.currentUniverse = universe;
+    this.setStatus();
   }
 
   protected getNulledUniverse(): DMXValues {
