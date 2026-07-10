@@ -6,7 +6,6 @@
         </label>
         <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" style="width:70%;"/>
     </div>
-    
     <div class="form-row">
         <label for="node-input-universe">
             <i class="fa fa-hashtag"></i>
@@ -48,6 +47,61 @@
         </label>
         <input type="number" id="node-input-port" style="width:70%;"/>
     </div>
+</script>
+<script type="text/html" data-help-name="sacn-in">
+    <p>Receives DMX data for a single universe via sACN (Streaming ACN / E1.31).</p>
+    <h3>Details</h3>
+    <p>
+        The node listens on the network for sACN packets addressed to the configured
+        <b>universe</b> and emits the DMX values on its output. Depending on the selected
+        <b>mode</b> it either forwards every received packet unmodified (<i>passthrough</i>)
+        or merges the data of all senders using <i>HTP</i> (Highest Takes Precedence) or
+        <i>LTP</i> (Latest Takes Precedence).
+    </p>
+    <p>
+        DMX values in the <code>payload</code> are expressed as a <b>percentage</b> and keyed by
+        DMX channel, starting at key <code>1</code> (not <code>0</code>).
+    </p>
+    <h4>Configuration</h4>
+    <dl class="message-properties">
+        <dt>Universe <span class="property-type">number</span></dt>
+        <dd>The universe to observe, <code>1</code> to <code>63999</code>. Default <code>1</code>.</dd>
+        <dt>Mode <span class="property-type">passthrough | htp | ltp</span></dt>
+        <dd>Whether to emit every received packet or merged values using HTP or LTP.</dd>
+        <dt>Output <span class="property-type">full | changes</span></dt>
+        <dd>Emit the whole universe on every update (<i>full</i>) or only the changed channels (<i>changes</i>).</dd>
+        <dt class="optional">Interface <span class="property-type">string</span></dt>
+        <dd>IP address of the network interface used for receiving. Leave empty to listen on all interfaces.</dd>
+        <dt class="optional">Port <span class="property-type">number</span></dt>
+        <dd>Network port to listen on. Defaults to <code>5568</code>.</dd>
+    </dl>
+    <h3>Outputs</h3>
+    <p>The properties emitted depend on the selected mode.</p>
+    <h4>Passthrough mode</h4>
+    <dl class="message-properties">
+        <dt>universe <span class="property-type">number</span></dt>
+        <dd>ID of the universe the packet is addressed to.</dd>
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>DMX values as percentage, keyed by channel (<code>1</code>-based).</dd>
+        <dt>sequence <span class="property-type">number</span></dt>
+        <dd>Packet sequence number of the sender, <code>1</code> to <code>255</code>.</dd>
+        <dt>source <span class="property-type">string</span></dt>
+        <dd>IP address of the sender.</dd>
+        <dt>priority <span class="property-type">number</span></dt>
+        <dd>Priority of the sender, <code>1</code> to <code>200</code>.</dd>
+    </dl>
+    <h4>Merging modes (HTP / LTP)</h4>
+    <dl class="message-properties">
+        <dt>universe <span class="property-type">number</span></dt>
+        <dd>ID of the universe the data is addressed to.</dd>
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>Merged DMX values as percentage, keyed by channel (<code>1</code>-based).</dd>
+    </dl>
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://www.npmjs.com/package/sacn">sacn</a> - the underlying library</li>
+        <li><a href="https://github.com/MysteryCode/node-red-sacn">GitHub</a> - the node's repository</li>
+    </ul>
 </script>
 <script type="text/javascript">
     RED.nodes.registerType("sacn-in", {

@@ -7,6 +7,66 @@
         <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" style="width:70%;">
     </div>
 </script>
+<script type="text/html" data-help-name="scene-controller">
+    <p>Records DMX scenes and plays them back later.</p>
+    <h3>Details</h3>
+    <p>
+        The node stores DMX values for one or more universes as named <b>scenes</b> in the node's
+        context and replays them on demand. The requested operation is selected via the
+        <code>action</code> property of the incoming message:
+    </p>
+    <ul>
+        <li><code>save</code> - store the <code>payload</code> as the given scene.</li>
+        <li><code>play</code> - emit a previously saved scene.</li>
+        <li><code>reset</code> - clear the given scene (or all scenes) and, if it is currently playing, emit a nulled universe.</li>
+    </ul>
+    <p>
+        DMX values are expressed as a <b>percentage</b> and keyed by DMX channel, starting at key
+        <code>1</code> (not <code>0</code>).
+    </p>
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>action <span class="property-type">string</span></dt>
+        <dd>Operation to perform: <code>save</code>, <code>play</code> or <code>reset</code>.</dd>
+        <dt>scene <span class="property-type">number</span></dt>
+        <dd>The scene to save or play. Required for <code>save</code> and <code>play</code>; optional for <code>reset</code> (omit to reset all scenes).</dd>
+        <dt class="optional">universe <span class="property-type">number</span></dt>
+        <dd>The universe the payload belongs to. Required when a single universe is provided as an array or a flat value object.</dd>
+        <dt>payload <span class="property-type">array | object</span></dt>
+        <dd>
+            The values to record (action <code>save</code>). May be an array (keys <code>0</code>-<code>511</code>) for a single
+            universe, an object (keys <code>1</code>-<code>512</code>) for a single universe, or an object of universes
+            (numeric keys) each holding an object of channel values.
+        </dd>
+    </dl>
+    <h3>Outputs</h3>
+    <h4>Single universe</h4>
+    <dl class="message-properties">
+        <dt>universe <span class="property-type">number</span></dt>
+        <dd>ID of the universe being emitted.</dd>
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>DMX values as percentage, keyed by channel (<code>1</code>-based).</dd>
+        <dt>scene <span class="property-type">number</span></dt>
+        <dd>The scene that is played.</dd>
+        <dt class="optional">reset <span class="property-type">boolean</span></dt>
+        <dd>Present and <code>true</code> for a reset message; otherwise absent.</dd>
+    </dl>
+    <h4>Multiple universes</h4>
+    <dl class="message-properties">
+        <dt>universe <span class="property-type">undefined</span></dt>
+        <dd>Not set when multiple universes are emitted.</dd>
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>One object per universe, each holding DMX values as percentage keyed by channel (<code>1</code>-based).</dd>
+        <dt>scene <span class="property-type">number</span></dt>
+        <dd>The scene that is played.</dd>
+        <dt class="optional">reset <span class="property-type">boolean</span></dt>
+        <dd>Present and <code>true</code> for a reset message; otherwise absent.</dd>
+    </dl>
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://github.com/MysteryCode/node-red-sacn">GitHub</a> - the node's repository</li>
+    </ul>
+</script>
 <script type="text/javascript">
     RED.nodes.registerType("scene-controller", {
         category: "sACN",
