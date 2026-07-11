@@ -13,6 +13,9 @@ interface Config extends NodeDef {
   port?: number;
   mode: "htp" | "ltp" | "passthrough";
   output: "full" | "changes";
+  trigger?: "changes" | "always" | "interval";
+  interval?: number;
+  clearOnUniverseChange?: boolean;
 }
 
 export interface MessageIn extends NodeMessage {
@@ -37,10 +40,20 @@ class NodeHandler {
 
   protected currentUniverse: number;
 
+  protected trigger: "changes" | "always" | "interval";
+
+  protected interval: number;
+
+  protected keepaliveTimer: ReturnType<typeof setTimeout> | undefined;
+
   constructor(node: Node<Config>, config: Config) {
     this.node = node;
     this.config = config;
     this.currentUniverse = config.universe;
+
+    // resolve the output trigger; keep legacy behaviour for nodes without the field
+    this.trigger = config.trigger ?? (config.mode === "passthrough" ? "always" : "changes");
+    this.interval = config.interval !== undefined && config.interval > 0 ? config.interval : 1000;
 
     // parse options for receiver instance
     const options: Receiver.Props | MergingReceiver.Props = {
@@ -75,34 +88,50 @@ class NodeHandler {
       // close all connections; terminate the receiver
       this.sACN.close();
 
+      if (this.keepaliveTimer) {
+        clearTimeout(this.keepaliveTimer);
+      }
+
       this.data = new Map();
     });
 
-    // handle sacn packets
+    // handle sacn packets according to the configured output trigger
     if (config.mode === "passthrough") {
       this.sACN.on("packet", (packet: Packet) => {
-        this.node.send({
-          universe: packet.universe,
-          payload: this.parsePayload(packet.payload, packet.universe),
-          sequence: packet.sequence,
-          source: packet.sourceAddress,
-          priority: packet.priority,
-        });
+        const changed = this.hasChanges(packet.payload, packet.universe);
+        const payload = this.parsePayload(packet.payload, packet.universe);
+
+        if (this.trigger === "always" || changed) {
+          this.sendData({
+            universe: packet.universe,
+            payload,
+            sequence: packet.sequence,
+            source: packet.sourceAddress,
+            priority: packet.priority,
+          });
+        }
       });
-    } else if (config.mode === "ltp") {
+    } else {
+      // htp / ltp — merged output
       (this.sACN as MergingReceiver).on("changed", (data) => {
-        this.node.send({
-          universe: data.universe,
-          payload: this.parsePayload(data.payload, data.universe),
-        });
+        const payload = this.parsePayload(data.payload, data.universe);
+
+        // in "always" mode the packet listener below emits on every packet instead
+        if (this.trigger !== "always") {
+          this.sendData({
+            universe: data.universe,
+            payload,
+          });
+        }
       });
-    } else if (config.mode === "htp") {
-      (this.sACN as MergingReceiver).on("changed", (data) => {
-        this.node.send({
-          universe: data.universe,
-          payload: this.parsePayload(data.payload, data.universe),
+
+      if (this.trigger === "always") {
+        // MergingReceiver merges on its own "packet" listener (registered first),
+        // so by the time this runs the full state is already up to date
+        this.sACN.on("packet", () => {
+          this.emitFull(this.currentUniverse);
         });
-      });
+      }
     }
 
     // allow switching the observed universe at runtime via msg.universe
@@ -111,6 +140,7 @@ class NodeHandler {
     });
 
     this.setStatus();
+    this.resetKeepalive();
   }
 
   protected setStatus(): void {
@@ -154,6 +184,15 @@ class NodeHandler {
 
     this.currentUniverse = universe;
     this.setStatus();
+
+    if (this.config.clearOnUniverseChange) {
+      // emit a blanked universe until real data for the new universe arrives
+      this.data?.set(universe, this.getNulledUniverse());
+      this.emitFull(universe);
+    } else {
+      // keep the keepalive heartbeat aligned with the new universe
+      this.resetKeepalive();
+    }
   }
 
   protected getNulledUniverse(): DMXValues {
@@ -166,27 +205,73 @@ class NodeHandler {
     return universe;
   }
 
-  protected getReference(universe: number): DMXValues {
-    if (this.config.output === "changes") {
-      return {};
+  protected hasChanges(payload: DMXValues, universe: number): boolean {
+    const full = this.data?.get(universe);
+    if (full === undefined) {
+      return true;
     }
 
-    return this.data?.get(universe) ?? this.getNulledUniverse();
+    return Object.keys(payload).some((key) => {
+      const ch = parseInt(key, 10);
+      return full[ch] !== payload[ch];
+    });
   }
 
   protected parsePayload(payload: DMXValues, universe: number): DMXValues {
-    const processedPayload: DMXValues = this.getReference(universe);
+    // always maintain the full state of the universe (needed for keepalive / clear)
+    const full: DMXValues = this.data?.get(universe) ?? this.getNulledUniverse();
 
     Object.keys(payload).forEach((key) => {
       const ch = parseInt(key, 10);
-      processedPayload[ch] = payload[ch];
+      full[ch] = payload[ch];
     });
 
-    if (this.config.output !== "changes") {
-      this.data?.set(universe, processedPayload);
+    this.data?.set(universe, full);
+
+    if (this.config.output === "changes") {
+      const changes: DMXValues = {};
+      Object.keys(payload).forEach((key) => {
+        const ch = parseInt(key, 10);
+        changes[ch] = payload[ch];
+      });
+
+      return changes;
     }
 
-    return processedPayload;
+    return full;
+  }
+
+  protected sendData(msg: NodeMessage): void {
+    this.node.send(msg);
+    this.resetKeepalive();
+  }
+
+  protected emitFull(universe: number): void {
+    const full = this.data?.get(universe) ?? this.getNulledUniverse();
+    this.sendData({ universe, payload: { ...full } });
+  }
+
+  protected resetKeepalive(): void {
+    if (this.trigger !== "interval") {
+      return;
+    }
+
+    if (this.keepaliveTimer) {
+      clearTimeout(this.keepaliveTimer);
+    }
+
+    this.keepaliveTimer = setTimeout(() => {
+      this.keepaliveTick();
+    }, this.interval);
+  }
+
+  protected keepaliveTick(): void {
+    if (this.data?.has(this.currentUniverse)) {
+      this.emitFull(this.currentUniverse);
+    } else {
+      // no data for the current universe yet; keep the heartbeat armed without emitting
+      this.resetKeepalive();
+    }
   }
 }
 

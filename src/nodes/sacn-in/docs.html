@@ -21,6 +21,26 @@
     <dd>Whether to emit every received packet or merged values using HTP or LTP.</dd>
     <dt>Output <span class="property-type">full | changes</span></dt>
     <dd>Emit the whole universe on every update (<i>full</i>) or only the changed channels (<i>changes</i>).</dd>
+    <dt>Output trigger <span class="property-type">changes | always | interval</span></dt>
+    <dd>
+        Controls <b>when</b> a message is emitted, independently of the mode:
+        <ul>
+            <li><i>changes only</i> — emit only when the values change.</li>
+            <li><i>every packet</i> — emit on every received sACN packet, even without a change.</li>
+            <li>
+                <i>changes + cyclic</i> — emit on change and reset a keepalive timer; if no change arrives
+                within the interval, the current full universe is re-emitted.
+            </li>
+        </ul>
+        In the merging modes, <i>every packet</i> and the cyclic re-emit send the full merged universe.
+    </dd>
+    <dt class="optional">Interval <span class="property-type">number</span></dt>
+    <dd>Keepalive interval in milliseconds for the <i>changes + cyclic</i> trigger. Default <code>1000</code>.</dd>
+    <dt class="optional">Blank on universe change <span class="property-type">boolean</span></dt>
+    <dd>
+        When switching the universe via <code>msg.universe</code>, immediately emit a full universe of
+        zeros for the new universe until the first real data arrives. Default <code>false</code>.
+    </dd>
     <dt class="optional">Interface <span class="property-type">string</span></dt>
     <dd>IP address of the network interface used for receiving. Leave empty to listen on all interfaces.</dd>
     <dt class="optional">Port <span class="property-type">number</span></dt>

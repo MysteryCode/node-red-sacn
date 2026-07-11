@@ -9,6 +9,12 @@
     "universe": "universe",
     "output": "output",
     "output_full": "whole universe",
-    "output_changes": "changes"
+    "output_changes": "changes",
+    "trigger": "output trigger",
+    "trigger_changes": "changes only",
+    "trigger_always": "every packet",
+    "trigger_interval": "changes + cyclic",
+    "interval": "interval (ms)",
+    "clearOnUniverseChange": "blank on universe change"
   }
 }

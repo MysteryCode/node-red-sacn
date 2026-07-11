@@ -35,6 +35,31 @@
     </select>
 </div>
 <div class="form-row">
+    <label for="node-input-trigger">
+        <i class="fa fa-share-square-o"></i>
+        <span data-i18n="sacn-in.label.trigger"></span>
+    </label>
+    <select id="node-input-trigger" style="width:70%;">
+        <option value="changes" data-i18n="sacn-in.label.trigger_changes"></option>
+        <option value="always" data-i18n="sacn-in.label.trigger_always"></option>
+        <option value="interval" data-i18n="sacn-in.label.trigger_interval"></option>
+    </select>
+</div>
+<div class="form-row" id="row-interval">
+    <label for="node-input-interval">
+        <i class="fa fa-clock-o"></i>
+        <span data-i18n="sacn-in.label.interval"></span>
+    </label>
+    <input type="number" id="node-input-interval" min="1" step="1" style="width:70%;"/>
+</div>
+<div class="form-row">
+    <label for="node-input-clearOnUniverseChange" style="width:auto;">
+        <i class="fa fa-eraser"></i>
+        <span data-i18n="sacn-in.label.clearOnUniverseChange"></span>
+    </label>
+    <input type="checkbox" id="node-input-clearOnUniverseChange" style="display:inline-block; width:auto; vertical-align:top; margin-left:4px;"/>
+</div>
+<div class="form-row">
     <label for="node-input-interface">
         <i class="fa fa-plug"></i>
         <span data-i18n="sacn-in.label.interface"></span>
