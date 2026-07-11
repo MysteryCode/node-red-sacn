@@ -213,12 +213,13 @@ class NodeHandler {
         else {
             payload = data.data;
         }
-        this.node.send({
+        const out = {
             topic: message.topic ?? `Scene ${message.scene}`,
             scene: message.scene,
             payload: payload,
             universe: universe,
-        });
+        };
+        this.node.send(out);
         this.node.status({
             fill: "green",
             shape: "dot",
@@ -256,13 +257,14 @@ class NodeHandler {
                             payload[parseInt(universe, 10)] = this.getNulledUniverse();
                         });
                     }
-                    this.node.send({
+                    const out = {
                         topic: `Scene ${scene}`,
                         scene: scene,
                         payload: payload,
                         universe: universe,
                         reset: true,
-                    });
+                    };
+                    this.node.send(out);
                 }
             }
             this.node.context().set(`scene-${scene}`, undefined);

@@ -4,7 +4,7 @@ declare const RED: EditorRED;
 
 type Defaults = EditorNodeProperties;
 
-RED.nodes.registerType("scene-controller", {
+const def: EditorNodeDef<Defaults> = {
   category: "sACN",
   color: "#dcc515",
   defaults: {
@@ -22,4 +22,6 @@ RED.nodes.registerType("scene-controller", {
   labelStyle: function () {
     return this.name ? "node_label_italic" : "";
   },
-} as EditorNodeDef<Defaults>);
+};
+
+RED.nodes.registerType("scene-controller", def);

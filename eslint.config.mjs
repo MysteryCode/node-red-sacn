@@ -18,6 +18,7 @@ export default [{
     "**/*.js",
     "**/extra",
     "node_modules/**/*",
+    ".remember/**/*",
     "tsconfig.json",
     "build.tsconfig.json",
     "eslint.config.mjs"

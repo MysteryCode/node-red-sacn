@@ -94,7 +94,7 @@
     </ul>
 </script>
 <script type="text/javascript">
-    RED.nodes.registerType("sacn-out", {
+    const def = {
         category: "sACN",
         color: "#dcc515",
         defaults: {
@@ -136,5 +136,6 @@
         labelStyle: function () {
             return this.name ? "node_label_italic" : "";
         },
-    });
+    };
+    RED.nodes.registerType("sacn-out", def);
 </script>

@@ -33,7 +33,7 @@ class NodeHandler {
 
   protected data: Map<number, DMXValues> | undefined = new Map();
 
-  protected sACN: Receiver | MergingReceiver;
+  protected sACN: Receiver;
 
   constructor(node: Node<Config>, config: Config) {
     this.node = node;
@@ -77,28 +77,28 @@ class NodeHandler {
 
     // handle sacn packets
     if (config.mode === "passthrough") {
-      (this.sACN as Receiver).on("packet", (packet: Packet) => {
+      this.sACN.on("packet", (packet: Packet) => {
         this.node.send({
           universe: packet.universe,
           payload: this.parsePayload(packet.payload, packet.universe),
           sequence: packet.sequence,
           source: packet.sourceAddress,
           priority: packet.priority,
-        } as DirectMessageIn);
+        });
       });
     } else if (config.mode === "ltp") {
       (this.sACN as MergingReceiver).on("changed", (data) => {
         this.node.send({
           universe: data.universe,
           payload: this.parsePayload(data.payload, data.universe),
-        } as MessageIn);
+        });
       });
     } else if (config.mode === "htp") {
       (this.sACN as MergingReceiver).on("changed", (data) => {
         this.node.send({
           universe: data.universe,
           payload: this.parsePayload(data.payload, data.universe),
-        } as MessageIn);
+        });
       });
     }
   }
@@ -115,7 +115,7 @@ class NodeHandler {
 
   protected getReference(universe: number): DMXValues {
     if (this.config.output === "changes") {
-      return {} as DMXValues;
+      return {};
     }
 
     return this.data?.get(universe) ?? this.getNulledUniverse();

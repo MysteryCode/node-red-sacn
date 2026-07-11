@@ -11,7 +11,7 @@ interface Defaults extends EditorNodeProperties {
   sourceName: string;
 }
 
-RED.nodes.registerType("sacn-out", {
+const def: EditorNodeDef<Defaults> = {
   category: "sACN",
   color: "#dcc515",
   defaults: {
@@ -53,4 +53,6 @@ RED.nodes.registerType("sacn-out", {
   labelStyle: function () {
     return this.name ? "node_label_italic" : "";
   },
-} as EditorNodeDef<Defaults>);
+};
+
+RED.nodes.registerType("sacn-out", def);

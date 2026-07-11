@@ -187,7 +187,7 @@ class NodeHandler {
       for (const key in input) {
         const item = input[key as keyof object];
 
-        if (typeof item === "string" || !isNaN(item as number)) {
+        if (typeof item === "string" || !isNaN(item)) {
           containsPossibleNumericValues = true;
         } else if (Array.isArray(item) || typeof item === "object") {
           containsPossibleUniverses = true;
@@ -321,12 +321,13 @@ class NodeHandler {
       payload = data.data;
     }
 
-    this.node.send({
+    const out: MessageOut = {
       topic: message.topic ?? `Scene ${message.scene}`,
       scene: message.scene,
       payload: payload,
       universe: universe,
-    } as MessageOut);
+    };
+    this.node.send(out);
 
     this.node.status({
       fill: "green",
@@ -373,13 +374,14 @@ class NodeHandler {
             });
           }
 
-          this.node.send({
+          const out: MessageOut = {
             topic: `Scene ${scene}`,
             scene: scene,
             payload: payload,
             universe: universe,
             reset: true,
-          } as MessageOut);
+          };
+          this.node.send(out);
         }
       }
 
