@@ -21,7 +21,7 @@ const def: EditorNodeDef<Defaults> = {
   inputs: 1,
   outputs: 1,
   paletteLabel: "Scene-Controller",
-  icon: "font-awesome/fa-list-ol",
+  icon: "scene-controller.svg",
   label: function () {
     return this.name || "Scene-Controller";
   },

@@ -114,7 +114,7 @@ const def: EditorNodeDef<Defaults> = {
   inputs: 1,
   outputs: 0,
   paletteLabel: "sACN out",
-  icon: "font-awesome/fa-lightbulb-o",
+  icon: "sacn-out.svg",
   label: function () {
     return this.name || `sACN out · U${this.universe}`;
   },
