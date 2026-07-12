@@ -10,7 +10,13 @@
       "universe": "Universum",
       "output": "Ausgabe",
       "output_full": "Vollständiges Universum",
-      "output_changes": "Änderungen"
+      "output_changes": "Änderungen",
+      "trigger": "Ausgabe-Auslösung",
+      "trigger_changes": "Nur Änderungen",
+      "trigger_always": "Jedes Paket",
+      "trigger_interval": "Änderungen + zyklisch",
+      "interval": "Intervall (ms)",
+      "clearOnUniverseChange": "Bei Universumswechsel auf 0 setzen"
     }
   }
 }
