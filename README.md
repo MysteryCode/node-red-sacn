@@ -117,3 +117,12 @@ This node has no configuration parameters; its behaviour is controlled entirely 
 | `payload`  | Object containing one object per universe. DMX-Channel `1` starts at key `1`, not `0`. (`object<number, object<number, number>>`) |
 | `scene`    | The scene that is played (`number`)                                                                                               |
 | `reset`    | Identifies a reset message for action `reset`, otherwise it does not exist. (`true`)                                              |
+
+## Protocol notes and limitations
+
+This package builds on the [`sacn`](https://www.npmjs.com/package/sacn) library and inherits its scope. Be aware of the following when integrating it:
+
+- **No Universe Discovery.** The sender does not emit E1.31 Universe Discovery packets, so receivers relying on discovery will not see this source listed automatically.
+- **No synchronization.** E1.31 universe synchronization (synchronized multi-universe updates) is not implemented.
+- **No stream termination.** When a sender node is stopped or redeployed it simply closes its socket; it does not send packets with the `Stream_Terminated` flag. Receivers therefore hold the last received values until their own signal-loss timeout (typically ~2.5 s) elapses.
+- **DMX values are percentages.** Channel values are expressed as a percentage (`0`–`100`, with up to two decimals) rather than as raw 8-bit values (`0`–`255`).
