@@ -1,6 +1,6 @@
 {
   "label": {
-    "interface": "IP-addresse of interface",
+    "interface": "IP-address of interface",
     "port": "port",
     "priority": "priority",
     "sourceName": "source-name",

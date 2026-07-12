@@ -25,15 +25,15 @@ Copyright MysteryCode and other contributors under [GNU GENERAL PUBLIC LICENSE V
 
 ### sACN in
 
-This node can be used to read one or multiple universes send by sACN.
+This node can be used to read one or multiple universes sent by sACN.
 
 #### Parameters:
 
-| Paremeter  | Description                                                                                                                   | Possible Values                                                | Default Value                | Mandatory |
+| Parameter  | Description                                                                                                                   | Possible Values                                                | Default Value                | Mandatory |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- | --------- |
 | universe   | The universe that is meant to be observed.                                                                                    | `\d+` (`1` to `63999`)                                         | `1`                          | yes       |
 | mode       | Defines whether the node returns the values of every read sACN package (passthrough mode), or merged values using HTP or LTP. | `passthrough`, `htp`, `ltp`                                    | `htp`                        | yes       |
-| output     | Defines wether the node sends only changed values or the whole universe.                                                      | `full`, `changes`                                              | `full`                       | yes       |
+| output     | Defines whether the node sends only changed values or the whole universe.                                                      | `full`, `changes`                                              | `full`                       | yes       |
 | IP-address | IP-Address of the network-interface that should be used for reading from sACN.                                                | `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\` (_any valid ip-address_) | _empty_                      | no        |
 | port       | The network port which should be used for reading sACN.                                                                       | `\d+`                                                          | _empty_ (defaults to `5568`) | no        |
 
@@ -60,7 +60,7 @@ This node can be used to send one universe using sACN.
 
 #### Parameters:
 
-| Paremeter   | Description                                                               | Possible Values                                                | Default Value                | Mandatory |
+| Parameter   | Description                                                               | Possible Values                                                | Default Value                | Mandatory |
 | ----------- | ------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- | --------- |
 | universe    | The universe that is meant to be observed.                                | `\d+` (`1` to `63999`)                                         | `1`                          | yes       |
 | source-name | The name for the sACN-sender that should be displayed within the network. | _any string below 50 characters_                               | `Node-RED`                   | yes       |
@@ -81,7 +81,7 @@ This node can be used to record scenes and play them afterwards.
 
 #### Parameters:
 
-| Paremeter | Description | Possible Values | Default Value | Mandatory |
+| Parameter | Description | Possible Values | Default Value | Mandatory |
 | --------- | ----------- | --------------- | ------------- | --------- |
 
 #### Expected input:
