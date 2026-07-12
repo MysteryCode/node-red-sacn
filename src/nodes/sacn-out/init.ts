@@ -9,6 +9,7 @@ interface Defaults extends EditorNodeProperties {
   speed: number;
   priority: number;
   sourceName: string;
+  blankOnClose: boolean;
 }
 
 const def: EditorNodeDef<Defaults> = {
@@ -41,6 +42,9 @@ const def: EditorNodeDef<Defaults> = {
     sourceName: {
       value: "Node-RED",
       required: true,
+    },
+    blankOnClose: {
+      value: false,
     },
   },
   inputs: 1,

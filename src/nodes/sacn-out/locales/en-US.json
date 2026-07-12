@@ -11,6 +11,7 @@
     "speed_40": "high (40Hz)",
     "speed_44": "maximum (44Hz)",
     "speed_once": "once (0Hz)",
-    "universe": "universe"
+    "universe": "universe",
+    "blankOnClose": "blank output on stop"
   }
 }

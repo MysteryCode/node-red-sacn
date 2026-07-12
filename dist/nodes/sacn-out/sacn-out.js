@@ -28,8 +28,24 @@ class NodeHandler {
             this.node.error(err);
             this.node.status({ fill: "red", shape: "dot", text: err.message || "sender error" });
         });
-        this.node.on("close", () => {
-            this.sACN.close();
+        this.node.on("close", (done) => {
+            const shutdown = () => {
+                this.sACN.close();
+                done();
+            };
+            if (this.config.blankOnClose) {
+                this.sACN
+                    .send({
+                    payload: this.getBlankPayload(),
+                    sourceName: config.sourceName,
+                    priority: config.priority || 100,
+                })
+                    .then(shutdown)
+                    .catch(shutdown);
+            }
+            else {
+                shutdown();
+            }
         });
         this.node.on("input", (msg) => {
             this.sACN
@@ -47,6 +63,13 @@ class NodeHandler {
             });
         });
         this.setStatus();
+    }
+    getBlankPayload() {
+        const payload = {};
+        for (let ch = 1; ch <= 512; ch++) {
+            payload[ch] = 0;
+        }
+        return payload;
     }
     setStatus() {
         const rate = this.config.speed !== undefined && this.config.speed > 0 ? `${this.config.speed} Hz` : "once";

@@ -21,6 +21,11 @@ export interface Config extends NodeDef {
   sourceName: string;
   priority?: number;
   speed?: number;
+  blankOnClose?: boolean;
+}
+
+interface DMXValues {
+  [key: number]: number;
 }
 
 export type MessageIn = NodeMessage;
@@ -62,9 +67,27 @@ class NodeHandler {
       this.node.status({ fill: "red", shape: "dot", text: err.message || "sender error" });
     });
 
-    this.node.on("close", () => {
-      // close all connections; terminate the receiver
-      this.sACN.close();
+    this.node.on("close", (done: () => void) => {
+      const shutdown = (): void => {
+        // close all connections; terminate the sender
+        this.sACN.close();
+        done();
+      };
+
+      // optionally blank the universe (send all-zero values) before closing, so
+      // receivers do not hold the last look until their own signal-loss timeout
+      if (this.config.blankOnClose) {
+        this.sACN
+          .send({
+            payload: this.getBlankPayload(),
+            sourceName: config.sourceName,
+            priority: config.priority || 100,
+          })
+          .then(shutdown)
+          .catch(shutdown);
+      } else {
+        shutdown();
+      }
     });
 
     this.node.on("input", (msg) => {
@@ -86,6 +109,15 @@ class NodeHandler {
     });
 
     this.setStatus();
+  }
+
+  protected getBlankPayload(): DMXValues {
+    const payload: DMXValues = {};
+    for (let ch = 1; ch <= 512; ch++) {
+      payload[ch] = 0;
+    }
+
+    return payload;
   }
 
   protected setStatus(): void {
