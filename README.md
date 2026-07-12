@@ -126,3 +126,14 @@ This package builds on the [`sacn`](https://www.npmjs.com/package/sacn) library 
 - **No synchronization.** E1.31 universe synchronization (synchronized multi-universe updates) is not implemented.
 - **No stream termination.** When a sender node is stopped or redeployed it simply closes its socket; it does not send packets with the `Stream_Terminated` flag. Receivers therefore hold the last received values until their own signal-loss timeout (typically ~2.5 s) elapses.
 - **DMX values are percentages.** Channel values are expressed as a percentage (`0`–`100`, with up to two decimals) rather than as raw 8-bit values (`0`–`255`).
+
+## Safety and legal notice
+
+This package is network/protocol software for controlling DMX/sACN lighting. It is **not** a certified safety system, and sACN (E1.31) is an unauthenticated, best-effort protocol with no delivery guarantees. Operate it on a dedicated, segmented lighting network. Please observe the following before deploying it:
+
+- **No safety or emergency lighting.** Do not use this package to control safety, escape-route or emergency lighting. Such installations require certified, monitored systems (e.g. DE: DIN VDE 0108-100, DIN EN 1838; AT: TRVB E 102, ÖVE/ÖNORM E 8002; CH: SN EN 1838 and the VKF fire-protection guidelines).
+- **No functional machine safety.** sACN/DMX is not a safety bus. Do not use it for the functional safety of machinery, kinetics, hoists or moving stage equipment (cf. Machinery Directive 2006/42/EC / Regulation (EU) 2023/1230, DIN 56950, EN ISO 13849, DGUV V3).
+- **Strobe / photosensitivity.** The software can drive arbitrary strobe and flashing effects. Operators are responsible for protecting audiences and staff from photosensitive-epilepsy and glare hazards (e.g. DE: VStättVO, DGUV Information 215-313).
+- **Lasers.** If DMX is used to control laser sources, the applicable laser-safety rules apply (e.g. DIN EN 60825; DE: OStrV / TROS Laserstrahlung, incl. an appointed laser safety officer).
+
+This is not legal advice. Responsibility for compliance, CE conformity of the controlled hardware and safe operation rests with the integrator and operator.
