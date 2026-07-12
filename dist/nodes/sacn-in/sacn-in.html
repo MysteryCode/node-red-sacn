@@ -11,7 +11,7 @@
             <i class="fa fa-hashtag"></i>
             <span data-i18n="sacn-in.label.universe"></span>
         </label>
-        <input type="text" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;"/>
+        <input type="number" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;"/>
     </div>
     <div class="form-row">
         <label for="node-input-mode">
@@ -19,8 +19,8 @@
             <span data-i18n="sacn-in.label.mode"></span>
         </label>
         <select id="node-input-mode" style="width:70%;">
-            <option value="passthrough" selected data-i18n="sacn-in.label.mode_direct"></option>
-            <option value="htp" data-i18n="sacn-in.label.mode_htp"></option>
+            <option value="passthrough" data-i18n="sacn-in.label.mode_direct"></option>
+            <option value="htp" selected data-i18n="sacn-in.label.mode_htp"></option>
             <option value="ltp" data-i18n="sacn-in.label.mode_ltp"></option>
         </select>
     </div>
@@ -32,6 +32,16 @@
         <select id="node-input-output" style="width:70%;">
             <option value="full" selected data-i18n="sacn-in.label.output_full"></option>
             <option value="changes" data-i18n="sacn-in.label.output_changes"></option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-values">
+            <i class="fa fa-sliders"></i>
+            <span data-i18n="sacn-in.label.values"></span>
+        </label>
+        <select id="node-input-values" style="width:70%;">
+            <option value="percent" selected data-i18n="sacn-in.label.values_percent"></option>
+            <option value="absolute" data-i18n="sacn-in.label.values_absolute"></option>
         </select>
     </div>
     <div class="form-row">
@@ -64,7 +74,8 @@
             <i class="fa fa-plug"></i>
             <span data-i18n="sacn-in.label.interface"></span>
         </label>
-        <input type="text" id="node-input-interface" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" style="width:70%;"/>
+        <input type="text" id="node-input-interface" list="node-input-interface-options" style="width:70%;"/>
+        <datalist id="node-input-interface-options"></datalist>
     </div>
     <div class="form-row">
         <label for="node-input-port">
@@ -84,8 +95,9 @@
         <i>LTP</i> (Latest Takes Precedence).
     </p>
     <p>
-        DMX values in the <code>payload</code> are expressed as a <b>percentage</b> and keyed by
-        DMX channel, starting at key <code>1</code> (not <code>0</code>).
+        DMX values in the <code>payload</code> are keyed by DMX channel, starting at key <code>1</code>
+        (not <code>0</code>). Depending on the <b>Values</b> setting they are expressed as a
+        <b>percentage</b> (<code>0</code>–<code>100</code>) or as raw <b>DMX values</b> (<code>0</code>–<code>255</code>).
     </p>
     <h4>Configuration</h4>
     <dl class="message-properties">
@@ -95,6 +107,8 @@
         <dd>Whether to emit every received packet or merged values using HTP or LTP.</dd>
         <dt>Output <span class="property-type">full | changes</span></dt>
         <dd>Emit the whole universe on every update (<i>full</i>) or only the changed channels (<i>changes</i>).</dd>
+        <dt>Values <span class="property-type">percent | absolute</span></dt>
+        <dd>Emit channel values as a percentage (<code>0</code>–<code>100</code>) or as raw DMX values (<code>0</code>–<code>255</code>). Default <code>percent</code>.</dd>
         <dt>Output trigger <span class="property-type">changes | always | interval</span></dt>
         <dd>
             Controls <b>when</b> a message is emitted, independently of the mode:
@@ -158,24 +172,74 @@
     </ul>
 </script>
 <script type="text/javascript">
+    function populateInterfaceOptions() {
+        const list = document.getElementById("node-input-interface-options");
+        if (!list) {
+            return;
+        }
+        $.getJSON("sacn/interfaces", (interfaces) => {
+            list.replaceChildren();
+            interfaces.forEach((iface) => {
+                const option = document.createElement("option");
+                option.value = iface.address;
+                option.label = `${iface.name} (${iface.address})`;
+                list.appendChild(option);
+            });
+        });
+    }
+    function toInt(value) {
+        if (typeof value === "number") {
+            return value;
+        }
+        if (typeof value === "string") {
+            return parseInt(value, 10);
+        }
+        return NaN;
+    }
+    function isValidInterface(value) {
+        if (typeof value !== "string" || value === "") {
+            return true;
+        }
+        return /^(\d{1,3}\.){3}\d{1,3}$/.test(value);
+    }
+    function isValidUniverse(value) {
+        const n = toInt(value);
+        return !isNaN(n) && n >= 1 && n <= 63999;
+    }
+    function isValidPort(value) {
+        if (value === undefined || value === null || value === "") {
+            return true;
+        }
+        const n = toInt(value);
+        return !isNaN(n) && n >= 1 && n <= 65535;
+    }
     const def = {
         category: "sACN",
         color: "#dcc515",
         defaults: {
             name: {
-                value: "Scene-Controller",
+                value: "",
             },
             universe: {
                 value: 1,
                 required: true,
+                validate: function (v) {
+                    return isValidUniverse(v);
+                },
             },
             port: {
                 value: undefined,
                 required: false,
+                validate: function (v) {
+                    return isValidPort(v);
+                },
             },
             interface: {
                 value: "",
                 required: false,
+                validate: function (v) {
+                    return isValidInterface(v);
+                },
             },
             mode: {
                 value: "htp",
@@ -196,13 +260,17 @@
             clearOnUniverseChange: {
                 value: false,
             },
+            values: {
+                value: "percent",
+                required: true,
+            },
         },
         inputs: 1,
         outputs: 1,
         paletteLabel: "sACN in",
-        icon: "font-awesome/fa-lightbulb-o",
+        icon: "sacn-in.svg",
         label: function () {
-            return this.name || "sACN";
+            return this.name || `sACN in · U${this.universe}`;
         },
         labelStyle: function () {
             return this.name ? "node_label_italic" : "";
@@ -217,6 +285,7 @@
             };
             select?.addEventListener("change", toggleInterval);
             toggleInterval();
+            populateInterfaceOptions();
         },
     };
     RED.nodes.registerType("sacn-in", def);

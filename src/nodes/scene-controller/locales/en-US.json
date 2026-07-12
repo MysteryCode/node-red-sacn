@@ -1,0 +1,7 @@
+{
+  "label": {
+    "values": "values",
+    "values_percent": "percent (0–100)",
+    "values_absolute": "absolute (0–255)"
+  }
+}

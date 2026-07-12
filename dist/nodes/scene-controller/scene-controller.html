@@ -6,14 +6,24 @@
         </label>
         <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name" style="width:70%;">
     </div>
+    <div class="form-row">
+        <label for="node-input-values">
+            <i class="fa fa-sliders"></i>
+            <span data-i18n="scene-controller.label.values"></span>
+        </label>
+        <select id="node-input-values" style="width:70%;">
+            <option value="percent" selected data-i18n="scene-controller.label.values_percent"></option>
+            <option value="absolute" data-i18n="scene-controller.label.values_absolute"></option>
+        </select>
+    </div>
 </script>
 <script type="text/html" data-help-name="scene-controller">
     <p>Records DMX scenes and plays them back later.</p>
     <h3>Details</h3>
     <p>
-        The node stores DMX values for one or more universes as named <b>scenes</b> in the node's
-        context and replays them on demand. The requested operation is selected via the
-        <code>action</code> property of the incoming message:
+        The node stores DMX values for one or more universes as named <b>scenes</b> on disk (in the
+        Node-RED user directory) so they survive a restart, and replays them on demand. The requested
+        operation is selected via the <code>action</code> property of the incoming message:
     </p>
     <ul>
         <li><code>save</code> - store the <code>payload</code> as the given scene.</li>
@@ -21,8 +31,9 @@
         <li><code>reset</code> - clear the given scene (or all scenes) and, if it is currently playing, emit a nulled universe.</li>
     </ul>
     <p>
-        DMX values are expressed as a <b>percentage</b> and keyed by DMX channel, starting at key
-        <code>1</code> (not <code>0</code>).
+        DMX values are keyed by DMX channel, starting at key <code>1</code> (not <code>0</code>).
+        The accepted value range follows the <b>Values</b> setting: a percentage (<code>0</code>–<code>100</code>)
+        or raw DMX values (<code>0</code>–<code>255</code>).
     </p>
     <h3>Inputs</h3>
     <dl class="message-properties">
@@ -75,11 +86,15 @@
             name: {
                 value: "Scene-Controller",
             },
+            values: {
+                value: "percent",
+                required: true,
+            },
         },
         inputs: 1,
         outputs: 1,
         paletteLabel: "Scene-Controller",
-        icon: "font-awesome/fa-list-ol",
+        icon: "scene-controller.svg",
         label: function () {
             return this.name || "Scene-Controller";
         },

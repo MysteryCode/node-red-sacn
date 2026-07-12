@@ -11,7 +11,7 @@
         <i class="fa fa-hashtag"></i>
         <span data-i18n="sacn-in.label.universe"></span>
     </label>
-    <input type="text" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;"/>
+    <input type="number" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;"/>
 </div>
 <div class="form-row">
     <label for="node-input-mode">
@@ -19,8 +19,8 @@
         <span data-i18n="sacn-in.label.mode"></span>
     </label>
     <select id="node-input-mode" style="width:70%;">
-        <option value="passthrough" selected data-i18n="sacn-in.label.mode_direct"></option>
-        <option value="htp" data-i18n="sacn-in.label.mode_htp"></option>
+        <option value="passthrough" data-i18n="sacn-in.label.mode_direct"></option>
+        <option value="htp" selected data-i18n="sacn-in.label.mode_htp"></option>
         <option value="ltp" data-i18n="sacn-in.label.mode_ltp"></option>
     </select>
 </div>
@@ -32,6 +32,16 @@
     <select id="node-input-output" style="width:70%;">
         <option value="full" selected data-i18n="sacn-in.label.output_full"></option>
         <option value="changes" data-i18n="sacn-in.label.output_changes"></option>
+    </select>
+</div>
+<div class="form-row">
+    <label for="node-input-values">
+        <i class="fa fa-sliders"></i>
+        <span data-i18n="sacn-in.label.values"></span>
+    </label>
+    <select id="node-input-values" style="width:70%;">
+        <option value="percent" selected data-i18n="sacn-in.label.values_percent"></option>
+        <option value="absolute" data-i18n="sacn-in.label.values_absolute"></option>
     </select>
 </div>
 <div class="form-row">
@@ -64,7 +74,8 @@
         <i class="fa fa-plug"></i>
         <span data-i18n="sacn-in.label.interface"></span>
     </label>
-    <input type="text" id="node-input-interface" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" style="width:70%;"/>
+    <input type="text" id="node-input-interface" list="node-input-interface-options" style="width:70%;"/>
+    <datalist id="node-input-interface-options"></datalist>
 </div>
 <div class="form-row">
     <label for="node-input-port">

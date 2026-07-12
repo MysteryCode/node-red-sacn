@@ -15,6 +15,9 @@
     "trigger_always": "Jedes Paket",
     "trigger_interval": "Änderungen + zyklisch",
     "interval": "Intervall (ms)",
-    "clearOnUniverseChange": "Bei Universumswechsel auf 0 setzen"
+    "clearOnUniverseChange": "Bei Universumswechsel auf 0 setzen",
+    "values": "Werte",
+    "values_percent": "Prozent (0–100)",
+    "values_absolute": "Absolut (0–255)"
   }
 }

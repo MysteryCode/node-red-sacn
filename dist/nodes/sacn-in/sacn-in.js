@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sacn_1 = require("sacn");
+const dmx_1 = require("../../lib/dmx");
+const network_1 = require("../../lib/network");
+const interfaces_1 = require("../../lib/interfaces");
 class NodeHandler {
     node;
     config;
@@ -9,25 +12,23 @@ class NodeHandler {
     currentUniverse;
     trigger;
     interval;
+    scale;
     keepaliveTimer;
     constructor(node, config) {
         this.node = node;
         this.config = config;
         this.currentUniverse = config.universe;
+        this.scale = config.values ?? "percent";
         this.trigger = config.trigger ?? (config.mode === "passthrough" ? "always" : "changes");
         this.interval = config.interval !== undefined && config.interval > 0 ? config.interval : 1000;
+        const network = (0, network_1.resolveNetworkOptions)(config);
         const options = {
             universes: [config.universe],
             reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
+            port: network.port,
         };
-        if (config.interface !== undefined && config.interface.length > 7) {
-            options.iface = config.interface;
-        }
-        if (config.port !== undefined && config.port > 0) {
-            options.port = config.port;
-        }
-        else {
-            options.port = 5568;
+        if (network.iface !== undefined) {
+            options.iface = network.iface;
         }
         switch (config.mode) {
             case "passthrough":
@@ -41,6 +42,10 @@ class NodeHandler {
             default:
                 throw new Error("[node-red-sacn] None or invalid mode selected.");
         }
+        this.sACN.on("error", (err) => {
+            this.node.error(err);
+            this.node.status({ fill: "red", shape: "dot", text: err.message || "receiver error" });
+        });
         this.node.on("close", () => {
             this.sACN.close();
             if (this.keepaliveTimer) {
@@ -50,8 +55,7 @@ class NodeHandler {
         });
         if (config.mode === "passthrough") {
             this.sACN.on("packet", (packet) => {
-                const changed = this.hasChanges(packet.payload, packet.universe);
-                const payload = this.parsePayload(packet.payload, packet.universe);
+                const { payload, changed } = this.applyFrame(packet.payload, packet.universe);
                 if (this.trigger === "always" || changed) {
                     this.sendData({
                         universe: packet.universe,
@@ -65,7 +69,7 @@ class NodeHandler {
         }
         else {
             this.sACN.on("changed", (data) => {
-                const payload = this.parsePayload(data.payload, data.universe);
+                const { payload } = this.applyFrame(data.payload, data.universe);
                 if (this.trigger !== "always") {
                     this.sendData({
                         universe: data.universe,
@@ -114,54 +118,45 @@ class NodeHandler {
         this.currentUniverse = universe;
         this.setStatus();
         if (this.config.clearOnUniverseChange) {
-            this.data?.set(universe, this.getNulledUniverse());
+            this.data?.set(universe, (0, dmx_1.nulledUniverse)());
             this.emitFull(universe);
         }
         else {
             this.resetKeepalive();
         }
     }
-    getNulledUniverse() {
-        const universe = {};
+    applyFrame(incoming, universe) {
+        const previous = this.data?.get(universe);
+        const full = (0, dmx_1.nulledUniverse)();
+        Object.keys(incoming).forEach((key) => {
+            const ch = parseInt(key, 10);
+            if (ch >= 1 && ch <= 512) {
+                full[ch] = (0, dmx_1.fromPercent)(incoming[ch], this.scale);
+            }
+        });
+        let changed = false;
+        const changes = {};
         for (let ch = 1; ch <= 512; ch++) {
-            universe[ch] = 0;
+            const before = previous ? previous[ch] : 0;
+            if (before !== full[ch]) {
+                changed = true;
+                changes[ch] = full[ch];
+            }
         }
-        return universe;
-    }
-    hasChanges(payload, universe) {
-        const full = this.data?.get(universe);
-        if (full === undefined) {
-            return true;
-        }
-        return Object.keys(payload).some((key) => {
-            const ch = parseInt(key, 10);
-            return full[ch] !== payload[ch];
-        });
-    }
-    parsePayload(payload, universe) {
-        const full = this.data?.get(universe) ?? this.getNulledUniverse();
-        Object.keys(payload).forEach((key) => {
-            const ch = parseInt(key, 10);
-            full[ch] = payload[ch];
-        });
         this.data?.set(universe, full);
-        if (this.config.output === "changes") {
-            const changes = {};
-            Object.keys(payload).forEach((key) => {
-                const ch = parseInt(key, 10);
-                changes[ch] = payload[ch];
-            });
-            return changes;
-        }
-        return full;
+        const payload = this.config.output === "changes" ? changes : full;
+        return { payload, changed };
     }
     sendData(msg) {
+        if (msg.payload && typeof msg.payload === "object") {
+            msg = { ...msg, payload: { ...msg.payload } };
+        }
         this.node.send(msg);
         this.resetKeepalive();
     }
     emitFull(universe) {
-        const full = this.data?.get(universe) ?? this.getNulledUniverse();
-        this.sendData({ universe, payload: { ...full } });
+        const full = this.data?.get(universe) ?? (0, dmx_1.nulledUniverse)();
+        this.sendData({ universe, payload: full });
     }
     resetKeepalive() {
         if (this.trigger !== "interval") {
@@ -184,6 +179,7 @@ class NodeHandler {
     }
 }
 exports.default = (RED) => {
+    (0, interfaces_1.registerInterfaceEndpoint)(RED);
     RED.nodes.registerType("sacn-in", function (config) {
         RED.nodes.createNode(this, config);
         new NodeHandler(this, config);

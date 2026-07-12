@@ -9,8 +9,9 @@
     <i>LTP</i> (Latest Takes Precedence).
 </p>
 <p>
-    DMX values in the <code>payload</code> are expressed as a <b>percentage</b> and keyed by
-    DMX channel, starting at key <code>1</code> (not <code>0</code>).
+    DMX values in the <code>payload</code> are keyed by DMX channel, starting at key <code>1</code>
+    (not <code>0</code>). Depending on the <b>Values</b> setting they are expressed as a
+    <b>percentage</b> (<code>0</code>–<code>100</code>) or as raw <b>DMX values</b> (<code>0</code>–<code>255</code>).
 </p>
 
 <h4>Configuration</h4>
@@ -21,6 +22,8 @@
     <dd>Whether to emit every received packet or merged values using HTP or LTP.</dd>
     <dt>Output <span class="property-type">full | changes</span></dt>
     <dd>Emit the whole universe on every update (<i>full</i>) or only the changed channels (<i>changes</i>).</dd>
+    <dt>Values <span class="property-type">percent | absolute</span></dt>
+    <dd>Emit channel values as a percentage (<code>0</code>–<code>100</code>) or as raw DMX values (<code>0</code>–<code>255</code>). Default <code>percent</code>.</dd>
     <dt>Output trigger <span class="property-type">changes | always | interval</span></dt>
     <dd>
         Controls <b>when</b> a message is emitted, independently of the mode:

@@ -1,10 +1,9 @@
 import { Node, NodeAPI, NodeDef } from "node-red";
 import { NodeMessage } from "@node-red/registry";
 import { Packet, Receiver, unstable_MergingReceiver as MergingReceiver } from "sacn";
-
-interface DMXValues {
-  [key: number]: number | undefined;
-}
+import { DMXValues, fromPercent, nulledUniverse, ValueScale } from "../../lib/dmx";
+import { resolveNetworkOptions } from "../../lib/network";
+import { registerInterfaceEndpoint } from "../../lib/interfaces";
 
 interface Config extends NodeDef {
   universe: number;
@@ -16,6 +15,7 @@ interface Config extends NodeDef {
   trigger?: "changes" | "always" | "interval";
   interval?: number;
   clearOnUniverseChange?: boolean;
+  values?: ValueScale;
 }
 
 export interface MessageIn extends NodeMessage {
@@ -44,29 +44,29 @@ class NodeHandler {
 
   protected interval: number;
 
+  protected scale: ValueScale;
+
   protected keepaliveTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(node: Node<Config>, config: Config) {
     this.node = node;
     this.config = config;
     this.currentUniverse = config.universe;
+    this.scale = config.values ?? "percent";
 
     // resolve the output trigger; keep legacy behaviour for nodes without the field
     this.trigger = config.trigger ?? (config.mode === "passthrough" ? "always" : "changes");
     this.interval = config.interval !== undefined && config.interval > 0 ? config.interval : 1000;
 
     // parse options for receiver instance
+    const network = resolveNetworkOptions(config);
     const options: Receiver.Props | MergingReceiver.Props = {
       universes: [config.universe],
       reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
+      port: network.port,
     };
-    if (config.interface !== undefined && config.interface.length > 7) {
-      options.iface = config.interface;
-    }
-    if (config.port !== undefined && config.port > 0) {
-      options.port = config.port;
-    } else {
-      options.port = 5568;
+    if (network.iface !== undefined) {
+      options.iface = network.iface;
     }
 
     // init sacn receiver
@@ -83,6 +83,15 @@ class NodeHandler {
         throw new Error("[node-red-sacn] None or invalid mode selected.");
     }
 
+    // a socket error (bind failure, multicast membership, …) is emitted as an
+    // "error" event; without a listener Node.js would treat it as an uncaught
+    // exception and could take the whole runtime down. Log it and surface it on
+    // the node instead, and keep running so the rest of the flow is unaffected.
+    this.sACN.on("error", (err: Error) => {
+      this.node.error(err);
+      this.node.status({ fill: "red", shape: "dot", text: err.message || "receiver error" });
+    });
+
     // run cleanup when node is closed
     this.node.on("close", () => {
       // close all connections; terminate the receiver
@@ -98,8 +107,7 @@ class NodeHandler {
     // handle sacn packets according to the configured output trigger
     if (config.mode === "passthrough") {
       this.sACN.on("packet", (packet: Packet) => {
-        const changed = this.hasChanges(packet.payload, packet.universe);
-        const payload = this.parsePayload(packet.payload, packet.universe);
+        const { payload, changed } = this.applyFrame(packet.payload, packet.universe);
 
         if (this.trigger === "always" || changed) {
           this.sendData({
@@ -114,7 +122,7 @@ class NodeHandler {
     } else {
       // htp / ltp — merged output
       (this.sACN as MergingReceiver).on("changed", (data) => {
-        const payload = this.parsePayload(data.payload, data.universe);
+        const { payload } = this.applyFrame(data.payload, data.universe);
 
         // in "always" mode the packet listener below emits on every packet instead
         if (this.trigger !== "always") {
@@ -187,7 +195,7 @@ class NodeHandler {
 
     if (this.config.clearOnUniverseChange) {
       // emit a blanked universe until real data for the new universe arrives
-      this.data?.set(universe, this.getNulledUniverse());
+      this.data?.set(universe, nulledUniverse());
       this.emitFull(universe);
     } else {
       // keep the keepalive heartbeat aligned with the new universe
@@ -195,60 +203,52 @@ class NodeHandler {
     }
   }
 
-  protected getNulledUniverse(): DMXValues {
-    const universe: DMXValues = {};
+  protected applyFrame(incoming: DMXValues, universe: number): { payload: DMXValues; changed: boolean } {
+    // an sACN data packet always describes the complete universe; channels that are
+    // absent from the received payload are deliberately 0, not unchanged. Rebuild the
+    // full state from a zeroed base so a channel fading to 0 is reflected correctly.
+    const previous = this.data?.get(universe);
+    const full = nulledUniverse();
 
+    Object.keys(incoming).forEach((key) => {
+      const ch = parseInt(key, 10);
+      if (ch >= 1 && ch <= 512) {
+        // the library always reports percentages; convert to the configured scale
+        full[ch] = fromPercent(incoming[ch], this.scale);
+      }
+    });
+
+    let changed = false;
+    const changes: DMXValues = {};
     for (let ch = 1; ch <= 512; ch++) {
-      universe[ch] = 0;
+      const before = previous ? previous[ch] : 0;
+      if (before !== full[ch]) {
+        changed = true;
+        changes[ch] = full[ch];
+      }
     }
-
-    return universe;
-  }
-
-  protected hasChanges(payload: DMXValues, universe: number): boolean {
-    const full = this.data?.get(universe);
-    if (full === undefined) {
-      return true;
-    }
-
-    return Object.keys(payload).some((key) => {
-      const ch = parseInt(key, 10);
-      return full[ch] !== payload[ch];
-    });
-  }
-
-  protected parsePayload(payload: DMXValues, universe: number): DMXValues {
-    // always maintain the full state of the universe (needed for keepalive / clear)
-    const full: DMXValues = this.data?.get(universe) ?? this.getNulledUniverse();
-
-    Object.keys(payload).forEach((key) => {
-      const ch = parseInt(key, 10);
-      full[ch] = payload[ch];
-    });
 
     this.data?.set(universe, full);
 
-    if (this.config.output === "changes") {
-      const changes: DMXValues = {};
-      Object.keys(payload).forEach((key) => {
-        const ch = parseInt(key, 10);
-        changes[ch] = payload[ch];
-      });
+    const payload = this.config.output === "changes" ? changes : full;
 
-      return changes;
-    }
-
-    return full;
+    return { payload, changed };
   }
 
   protected sendData(msg: NodeMessage): void {
+    // never hand out a reference to the cached universe state; a downstream node
+    // must not be able to mutate our internal data by holding on to the payload
+    if (msg.payload && typeof msg.payload === "object") {
+      msg = { ...msg, payload: { ...(msg.payload as DMXValues) } };
+    }
+
     this.node.send(msg);
     this.resetKeepalive();
   }
 
   protected emitFull(universe: number): void {
-    const full = this.data?.get(universe) ?? this.getNulledUniverse();
-    this.sendData({ universe, payload: { ...full } });
+    const full = this.data?.get(universe) ?? nulledUniverse();
+    this.sendData({ universe, payload: full });
   }
 
   protected resetKeepalive(): void {
@@ -276,6 +276,8 @@ class NodeHandler {
 }
 
 export default (RED: NodeAPI): void => {
+  registerInterfaceEndpoint(RED);
+
   RED.nodes.registerType("sacn-in", function (this: Node<Config>, config: Config) {
     RED.nodes.createNode(this, config);
 

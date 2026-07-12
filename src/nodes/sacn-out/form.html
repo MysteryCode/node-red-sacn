@@ -42,11 +42,29 @@
     <input type="number" id="node-input-priority" min="1" max="200" step="1" style="width:70%;"/>
 </div>
 <div class="form-row">
+    <label for="node-input-values">
+        <i class="fa fa-sliders"></i>
+        <span data-i18n="sacn-out.label.values"></span>
+    </label>
+    <select id="node-input-values" style="width:70%;">
+        <option value="percent" selected data-i18n="sacn-out.label.values_percent"></option>
+        <option value="absolute" data-i18n="sacn-out.label.values_absolute"></option>
+    </select>
+</div>
+<div class="form-row">
+    <label for="node-input-blankOnClose" style="width:auto;">
+        <i class="fa fa-eraser"></i>
+        <span data-i18n="sacn-out.label.blankOnClose"></span>
+    </label>
+    <input type="checkbox" id="node-input-blankOnClose" style="display:inline-block; width:auto; vertical-align:top; margin-left:4px;"/>
+</div>
+<div class="form-row">
     <label for="node-input-interface">
         <i class="fa fa-plug"></i>
         <span data-i18n="sacn-out.label.interface"></span>
     </label>
-    <input type="text" id="node-input-interface" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" style="width:70%;"/>
+    <input type="text" id="node-input-interface" list="node-input-interface-options" style="width:70%;"/>
+    <datalist id="node-input-interface-options"></datalist>
 </div>
 <div class="form-row">
     <label for="node-input-port">

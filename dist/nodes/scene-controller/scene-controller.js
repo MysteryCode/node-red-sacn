@@ -1,11 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const dmx_1 = require("../../lib/dmx");
+const scene_store_1 = require("../../lib/scene-store");
 class NodeHandler {
     node;
     config;
-    constructor(node, config) {
+    scale;
+    store;
+    scenes;
+    playingScene = null;
+    constructor(node, config, store) {
         this.node = node;
         this.config = config;
+        this.scale = config.values ?? "percent";
+        this.store = store;
+        this.scenes = store.load();
         this.node.on("input", (msg) => {
             const message = msg;
             switch (message.action || "undefined") {
@@ -35,8 +44,8 @@ class NodeHandler {
         });
     }
     validateUniverse(universe) {
-        if (universe === undefined || isNaN(universe) || universe < 1 || universe > 65279) {
-            throw new Error(`The universe number '${universe}' (${typeof universe}) is invalid or not between 1 and 65279.`);
+        if (universe === undefined || isNaN(universe) || universe < 1 || universe > 63999) {
+            throw new Error(`The universe number '${universe}' (${typeof universe}) is invalid or not between 1 and 63999.`);
         }
     }
     validateChannel(channel, universe, firstChannel = 1, lastChannel = 512) {
@@ -45,8 +54,9 @@ class NodeHandler {
         }
     }
     validateValue(value, channel, universe) {
-        if (isNaN(value) || value < 0 || value > 255) {
-            throw new Error(`Value '${value}' (${typeof value}) for channel '${channel}' of universe '${universe}' is invalid or not between 0 and 255.`);
+        const max = (0, dmx_1.maxValue)(this.scale);
+        if (isNaN(value) || value < 0 || value > max) {
+            throw new Error(`Value '${value}' (${typeof value}) for channel '${channel}' of universe '${universe}' is invalid or not between 0 and ${max}.`);
         }
     }
     parseUniverseObject(input, universe) {
@@ -65,7 +75,7 @@ class NodeHandler {
             }
             this.validateChannel(channel, universe, startIndex, endIndex);
             if (typeof value === "string") {
-                value = parseInt(value);
+                value = parseFloat(value);
             }
             this.validateValue(value, channel, universe);
             output[channel] = value;
@@ -80,7 +90,7 @@ class NodeHandler {
         input.forEach((value, channel) => {
             this.validateChannel(channel, universe, 0, 511);
             if (typeof value === "string") {
-                value = parseInt(value, 10);
+                value = parseFloat(value);
             }
             this.validateValue(value, channel, universe);
             output[channel] = value;
@@ -190,19 +200,19 @@ class NodeHandler {
         return true;
     }
     handleSave(message) {
-        const scene = {
+        this.scenes[message.scene] = {
             scene: message.scene,
             data: message.payload,
         };
-        this.node.context().set(`scene-${message.scene}`, scene);
+        this.store.save(this.scenes);
     }
     handlePlay(message) {
-        const data = this.node.context().get(`scene-${message.scene}`);
+        const data = this.scenes[message.scene];
         if (!data) {
             this.node.warn(`Cannot play scene no. ${message.scene} since it has not been recorded yet.`);
             return;
         }
-        this.node.context().set("playingScene", message.scene);
+        this.playingScene = message.scene;
         let payload;
         let universe = undefined;
         const universes = Object.keys(data.data);
@@ -226,18 +236,11 @@ class NodeHandler {
             text: message.topic ?? `Scene ${message.scene}`,
         });
     }
-    getNulledUniverse() {
-        const universe = {};
-        for (let ch = 1; ch <= 512; ch++) {
-            universe[ch] = 0;
-        }
-        return universe;
-    }
     handleReset(message) {
         const resetScene = (scene) => {
-            const data = this.node.context().get(`scene-${scene}`);
-            if (this.node.context().get("playingScene") === scene) {
-                this.node.context().set("playingScene", null);
+            const data = this.scenes[scene];
+            if (this.playingScene === scene) {
+                this.playingScene = null;
                 this.node.status({
                     fill: "green",
                     shape: "ring",
@@ -249,12 +252,12 @@ class NodeHandler {
                     let payload;
                     if (universes.length === 1) {
                         universe = parseInt(universes[0], 10);
-                        payload = this.getNulledUniverse();
+                        payload = (0, dmx_1.nulledUniverse)();
                     }
                     else {
                         payload = {};
                         universes.forEach((universe) => {
-                            payload[parseInt(universe, 10)] = this.getNulledUniverse();
+                            payload[parseInt(universe, 10)] = (0, dmx_1.nulledUniverse)();
                         });
                     }
                     const out = {
@@ -267,27 +270,23 @@ class NodeHandler {
                     this.node.send(out);
                 }
             }
-            this.node.context().set(`scene-${scene}`, undefined);
+            delete this.scenes[scene];
         };
         if (message.scene) {
             resetScene(message.scene);
         }
         else {
-            this.node
-                .context()
-                .keys()
-                .forEach((key) => {
-                const matches = key.match(/^scene-(\d+)/);
-                if (matches !== null) {
-                    resetScene(parseInt(matches[1], 10));
-                }
+            Object.keys(this.scenes).forEach((key) => {
+                resetScene(parseInt(key, 10));
             });
         }
+        this.store.save(this.scenes);
     }
 }
 exports.default = (RED) => {
     RED.nodes.registerType("scene-controller", function (config) {
         RED.nodes.createNode(this, config);
-        new NodeHandler(this, config);
+        const baseDir = RED.settings.userDir ?? process.cwd();
+        new NodeHandler(this, config, new scene_store_1.SceneStore(baseDir, this.id));
     });
 };

@@ -42,11 +42,29 @@
         <input type="number" id="node-input-priority" min="1" max="200" step="1" style="width:70%;"/>
     </div>
     <div class="form-row">
+        <label for="node-input-values">
+            <i class="fa fa-sliders"></i>
+            <span data-i18n="sacn-out.label.values"></span>
+        </label>
+        <select id="node-input-values" style="width:70%;">
+            <option value="percent" selected data-i18n="sacn-out.label.values_percent"></option>
+            <option value="absolute" data-i18n="sacn-out.label.values_absolute"></option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-blankOnClose" style="width:auto;">
+            <i class="fa fa-eraser"></i>
+            <span data-i18n="sacn-out.label.blankOnClose"></span>
+        </label>
+        <input type="checkbox" id="node-input-blankOnClose" style="display:inline-block; width:auto; vertical-align:top; margin-left:4px;"/>
+    </div>
+    <div class="form-row">
         <label for="node-input-interface">
             <i class="fa fa-plug"></i>
             <span data-i18n="sacn-out.label.interface"></span>
         </label>
-        <input type="text" id="node-input-interface" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" style="width:70%;"/>
+        <input type="text" id="node-input-interface" list="node-input-interface-options" style="width:70%;"/>
+        <datalist id="node-input-interface-options"></datalist>
     </div>
     <div class="form-row">
         <label for="node-input-port">
@@ -64,8 +82,9 @@
         once per message or repeated continuously at the selected refresh rate.
     </p>
     <p>
-        DMX values in the <code>payload</code> are expected as a <b>percentage</b> and keyed by
-        DMX channel, starting at key <code>1</code> (not <code>0</code>).
+        DMX values in the <code>payload</code> are keyed by DMX channel, starting at key <code>1</code>
+        (not <code>0</code>). Depending on the <b>Values</b> setting they are expected as a
+        <b>percentage</b> (<code>0</code>–<code>100</code>) or as raw <b>DMX values</b> (<code>0</code>–<code>255</code>).
     </p>
     <h4>Configuration</h4>
     <dl class="message-properties">
@@ -77,6 +96,10 @@
         <dd>Refresh rate in Hz: <code>0</code> (once), <code>24</code>, <code>27</code>, <code>30</code>, <code>40</code> or <code>44</code>. Default <code>0</code>.</dd>
         <dt>Priority <span class="property-type">number</span></dt>
         <dd>Priority of the sender, <code>1</code> to <code>200</code>. Default <code>100</code>.</dd>
+        <dt>Values <span class="property-type">percent | absolute</span></dt>
+        <dd>Interpret the incoming payload as a percentage (<code>0</code>–<code>100</code>) or as raw DMX values (<code>0</code>–<code>255</code>). Default <code>percent</code>.</dd>
+        <dt class="optional">Blank output on stop <span class="property-type">boolean</span></dt>
+        <dd>Send an all-zero frame before closing so receivers go dark on stop/redeploy instead of holding the last look. Default <code>false</code>.</dd>
         <dt class="optional">Interface <span class="property-type">string</span></dt>
         <dd>IP address of the network interface used for sending. Leave empty to use the default interface.</dd>
         <dt class="optional">Port <span class="property-type">number</span></dt>
@@ -94,24 +117,74 @@
     </ul>
 </script>
 <script type="text/javascript">
+    function populateInterfaceOptions() {
+        const list = document.getElementById("node-input-interface-options");
+        if (!list) {
+            return;
+        }
+        $.getJSON("sacn/interfaces", (interfaces) => {
+            list.replaceChildren();
+            interfaces.forEach((iface) => {
+                const option = document.createElement("option");
+                option.value = iface.address;
+                option.label = `${iface.name} (${iface.address})`;
+                list.appendChild(option);
+            });
+        });
+    }
+    function toInt(value) {
+        if (typeof value === "number") {
+            return value;
+        }
+        if (typeof value === "string") {
+            return parseInt(value, 10);
+        }
+        return NaN;
+    }
+    function isValidInterface(value) {
+        if (typeof value !== "string" || value === "") {
+            return true;
+        }
+        return /^(\d{1,3}\.){3}\d{1,3}$/.test(value);
+    }
+    function isValidUniverse(value) {
+        const n = toInt(value);
+        return !isNaN(n) && n >= 1 && n <= 63999;
+    }
+    function isValidPort(value) {
+        if (value === undefined || value === null || value === "") {
+            return true;
+        }
+        const n = toInt(value);
+        return !isNaN(n) && n >= 1 && n <= 65535;
+    }
     const def = {
         category: "sACN",
         color: "#dcc515",
         defaults: {
             name: {
-                value: "Scene-Controller",
+                value: "",
             },
             universe: {
                 value: 1,
                 required: true,
+                validate: function (v) {
+                    return isValidUniverse(v);
+                },
             },
             port: {
                 value: undefined,
                 required: false,
+                validate: function (v) {
+                    return isValidPort(v);
+                },
             },
             interface: {
                 value: "",
                 required: false,
+                validate: function (v) {
+                    return isValidInterface(v);
+                },
             },
             speed: {
                 value: 0,
@@ -125,16 +198,26 @@
                 value: "Node-RED",
                 required: true,
             },
+            blankOnClose: {
+                value: false,
+            },
+            values: {
+                value: "percent",
+                required: true,
+            },
         },
         inputs: 1,
         outputs: 0,
         paletteLabel: "sACN out",
-        icon: "font-awesome/fa-lightbulb-o",
+        icon: "sacn-out.svg",
         label: function () {
-            return this.name || "sACN";
+            return this.name || `sACN out · U${this.universe}`;
         },
         labelStyle: function () {
             return this.name ? "node_label_italic" : "";
+        },
+        oneditprepare: function () {
+            populateInterfaceOptions();
         },
     };
     RED.nodes.registerType("sacn-out", def);

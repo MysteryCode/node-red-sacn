@@ -1,11 +1,9 @@
 import { Node, NodeAPI, NodeDef } from "node-red";
 import { NodeMessage } from "@node-red/registry";
+import { DMXValues, maxValue, nulledUniverse, ValueScale } from "../../lib/dmx";
+import { SceneStore } from "../../lib/scene-store";
 
 type SceneControllerAction = "save" | "play" | "reset";
-
-interface DMXValues {
-  [key: number]: number | undefined;
-}
 
 interface Universes {
   [key: number]: DMXValues;
@@ -16,7 +14,9 @@ interface Scene {
   data: Universes;
 }
 
-export type Config = NodeDef;
+export interface Config extends NodeDef {
+  values?: ValueScale;
+}
 
 type MessageInPayload =
   | {
@@ -45,9 +45,20 @@ class NodeHandler {
 
   protected config: Config;
 
-  constructor(node: Node<Config>, config: Config) {
+  protected scale: ValueScale;
+
+  protected store: SceneStore<Scene>;
+
+  protected scenes: Record<number, Scene>;
+
+  protected playingScene: number | null = null;
+
+  constructor(node: Node<Config>, config: Config, store: SceneStore<Scene>) {
     this.node = node;
     this.config = config;
+    this.scale = config.values ?? "percent";
+    this.store = store;
+    this.scenes = store.load();
 
     this.node.on("input", (msg) => {
       const message: MessageIn = msg as MessageIn;
@@ -84,8 +95,8 @@ class NodeHandler {
   }
 
   protected validateUniverse(universe: number | undefined): void {
-    if (universe === undefined || isNaN(universe) || universe < 1 || universe > 65279) {
-      throw new Error(`The universe number '${universe}' (${typeof universe}) is invalid or not between 1 and 65279.`);
+    if (universe === undefined || isNaN(universe) || universe < 1 || universe > 63999) {
+      throw new Error(`The universe number '${universe}' (${typeof universe}) is invalid or not between 1 and 63999.`);
     }
   }
 
@@ -103,9 +114,11 @@ class NodeHandler {
   }
 
   protected validateValue(value: number, channel: number, universe: number): void {
-    if (isNaN(value) || value < 0 || value > 255) {
+    const max = maxValue(this.scale);
+
+    if (isNaN(value) || value < 0 || value > max) {
       throw new Error(
-        `Value '${value}' (${typeof value}) for channel '${channel}' of universe '${universe}' is invalid or not between 0 and 255.`,
+        `Value '${value}' (${typeof value}) for channel '${channel}' of universe '${universe}' is invalid or not between 0 and ${max}.`,
       );
     }
   }
@@ -131,7 +144,8 @@ class NodeHandler {
       this.validateChannel(channel as number, universe, startIndex, endIndex);
 
       if (typeof value === "string") {
-        value = parseInt(value);
+        // parse as float so fractional percentage values keep their precision
+        value = parseFloat(value);
       }
 
       this.validateValue(value as number, channel as number, universe);
@@ -153,7 +167,8 @@ class NodeHandler {
       this.validateChannel(channel, universe, 0, 511);
 
       if (typeof value === "string") {
-        value = parseInt(value, 10);
+        // parse as float so fractional percentage values keep their precision
+        value = parseFloat(value);
       }
 
       this.validateValue(value as number, channel, universe);
@@ -294,22 +309,22 @@ class NodeHandler {
   }
 
   protected handleSave(message: MessageIn) {
-    const scene: Scene = {
+    this.scenes[message.scene] = {
       scene: message.scene,
       data: message.payload as Universes,
     };
-    this.node.context().set(`scene-${message.scene}`, scene);
+    this.store.save(this.scenes);
   }
 
   protected handlePlay(message: MessageIn): void {
-    const data: Scene | null = this.node.context().get(`scene-${message.scene}`) as Scene | null;
+    const data: Scene | undefined = this.scenes[message.scene];
     if (!data) {
       this.node.warn(`Cannot play scene no. ${message.scene} since it has not been recorded yet.`);
 
       return;
     }
 
-    this.node.context().set("playingScene", message.scene);
+    this.playingScene = message.scene;
 
     let payload: Universes | DMXValues;
     let universe: number | undefined = undefined;
@@ -336,23 +351,12 @@ class NodeHandler {
     });
   }
 
-  protected getNulledUniverse(): DMXValues {
-    const universe: DMXValues = {};
-
-    for (let ch = 1; ch <= 512; ch++) {
-      universe[ch] = 0;
-    }
-
-    return universe;
-  }
-
   protected handleReset(message: MessageIn): void {
-    // TODO
     const resetScene = (scene: number) => {
-      const data: Scene | null = this.node.context().get(`scene-${scene}`) as Scene | null;
+      const data: Scene | undefined = this.scenes[scene];
 
-      if (this.node.context().get("playingScene") === scene) {
-        this.node.context().set("playingScene", null);
+      if (this.playingScene === scene) {
+        this.playingScene = null;
 
         this.node.status({
           fill: "green",
@@ -366,11 +370,11 @@ class NodeHandler {
           let payload: DMXValues | Universes;
           if (universes.length === 1) {
             universe = parseInt(universes[0], 10);
-            payload = this.getNulledUniverse();
+            payload = nulledUniverse();
           } else {
             payload = {};
             universes.forEach((universe) => {
-              payload[parseInt(universe, 10)] = this.getNulledUniverse();
+              payload[parseInt(universe, 10)] = nulledUniverse();
             });
           }
 
@@ -385,22 +389,18 @@ class NodeHandler {
         }
       }
 
-      this.node.context().set(`scene-${scene}`, undefined);
+      delete this.scenes[scene];
     };
 
     if (message.scene) {
       resetScene(message.scene);
     } else {
-      this.node
-        .context()
-        .keys()
-        .forEach((key) => {
-          const matches = key.match(/^scene-(\d+)/);
-          if (matches !== null) {
-            resetScene(parseInt(matches[1], 10));
-          }
-        });
+      Object.keys(this.scenes).forEach((key) => {
+        resetScene(parseInt(key, 10));
+      });
     }
+
+    this.store.save(this.scenes);
   }
 }
 
@@ -408,6 +408,7 @@ export default (RED: NodeAPI): void => {
   RED.nodes.registerType("scene-controller", function (this: Node<Config>, config: Config) {
     RED.nodes.createNode(this, config);
 
-    new NodeHandler(this, config);
+    const baseDir = RED.settings.userDir ?? process.cwd();
+    new NodeHandler(this, config, new SceneStore<Scene>(baseDir, this.id));
   });
 };
