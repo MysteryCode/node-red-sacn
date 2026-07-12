@@ -92,20 +92,24 @@ This node can be used to record scenes and play them afterwards.
 
 #### Parameters:
 
-| Parameter | Description                                                                    | Possible Values       | Default Value | Mandatory |
-| --------- | ------------------------------------------------------------------------------ | --------------------- | ------------- | --------- |
-| values    | Interpret channel values as a percentage (0–100) or as raw DMX values (0–255). | `percent`, `absolute` | `percent`     | yes       |
+| Parameter      | Description                                                                                                                | Possible Values       | Default Value | Mandatory |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------- | ------------- | --------- |
+| values         | Interpret channel values as a percentage (0–100) or as raw DMX values (0–255).                                             | `percent`, `absolute` | `percent`     | yes       |
+| playMode       | Whether a new `play` replaces the running look (`switch`) or stacks scenes additively, combined per channel by HTP (`add`) | `switch`, `add`       | `switch`      | yes       |
+| blackoutOnStop | Send a nulled universe once when the last active scene is stopped, so the output goes dark.                                | `true`, `false`       | `false`       | no        |
 
 Recorded scenes are stored on disk (in a `sacn-scenes` directory inside the Node-RED user directory) and survive a restart.
 
+In `add` mode multiple scenes can be active at once; every `play`, `stop` or `reset` recomputes the combined look (highest value wins per channel) and emits it once. The output only goes dark once the last active scene ends.
+
 #### Expected input:
 
-| Property   | Description                                                                                                                                                                                                                                                                          | Mandatory                       |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
-| `action`   | the action to be executed - `save` to save a preset, `play` to play a saved preset, `reset` to reset                                                                                                                                                                                 | yes                             |
-| `scene`    | for action                                                                                                                                                                                                                                                                           | yes, for actions `save`, `play` |
-| `universe` | if only one universe is handled, this parameter is mandatory and contains the used universe                                                                                                                                                                                          | only for a single universe      |
-| `payload`  | contains the values to record. it might be an array (key 0-511) containing the values for a single universe,<br/>an object (keys 1-512) containing the values for a single universe or<br/>an object (any numeric keys) containing objects (keys 1-512) containing an universe each. | yes, for action `save`          |
+| Property   | Description                                                                                                                                                                                                                                                                          | Mandatory                               |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| `action`   | the action to be executed - `save` to save a preset, `play` to play a saved preset, `stop` to stop a preset while keeping it stored, `reset` to reset                                                                                                                                | yes                                     |
+| `scene`    | for action                                                                                                                                                                                                                                                                           | yes, for actions `save`, `play`, `stop` |
+| `universe` | if only one universe is handled, this parameter is mandatory and contains the used universe                                                                                                                                                                                          | only for a single universe              |
+| `payload`  | contains the values to record. it might be an array (key 0-511) containing the values for a single universe,<br/>an object (keys 1-512) containing the values for a single universe or<br/>an object (any numeric keys) containing objects (keys 1-512) containing an universe each. | yes, for action `save`                  |
 
 #### Output for single universe:
 
@@ -115,6 +119,7 @@ Recorded scenes are stored on disk (in a `sacn-scenes` directory inside the Node
 | `payload`  | Array containing the dmx values as **percentage** by dmx channel. DMX-Channel `1` starts at key `1`, not `0`. (`Array<number, number>`) |
 | `scene`    | The scene that is played (`number`)                                                                                                     |
 | `reset`    | Identifies a reset message for action `reset`, otherwise it does not exist. (`true`)                                                    |
+| `stopped`  | Identifies the nulled message emitted for action `stop` (when `blackoutOnStop` is enabled), otherwise it does not exist. (`true`)       |
 
 #### Output for multiple universes:
 
@@ -124,6 +129,7 @@ Recorded scenes are stored on disk (in a `sacn-scenes` directory inside the Node
 | `payload`  | Object containing one object per universe. DMX-Channel `1` starts at key `1`, not `0`. (`object<number, object<number, number>>`) |
 | `scene`    | The scene that is played (`number`)                                                                                               |
 | `reset`    | Identifies a reset message for action `reset`, otherwise it does not exist. (`true`)                                              |
+| `stopped`  | Identifies the nulled message emitted for action `stop` (when `blackoutOnStop` is enabled), otherwise it does not exist. (`true`) |
 
 ## Protocol notes and limitations
 
