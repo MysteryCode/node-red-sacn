@@ -150,12 +150,15 @@ class NodeHandler {
         return { payload, changed };
     }
     sendData(msg) {
+        if (msg.payload && typeof msg.payload === "object") {
+            msg = { ...msg, payload: { ...msg.payload } };
+        }
         this.node.send(msg);
         this.resetKeepalive();
     }
     emitFull(universe) {
         const full = this.data?.get(universe) ?? this.getNulledUniverse();
-        this.sendData({ universe, payload: { ...full } });
+        this.sendData({ universe, payload: full });
     }
     resetKeepalive() {
         if (this.trigger !== "interval") {

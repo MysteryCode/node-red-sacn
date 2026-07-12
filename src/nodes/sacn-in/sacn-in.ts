@@ -236,13 +236,19 @@ class NodeHandler {
   }
 
   protected sendData(msg: NodeMessage): void {
+    // never hand out a reference to the cached universe state; a downstream node
+    // must not be able to mutate our internal data by holding on to the payload
+    if (msg.payload && typeof msg.payload === "object") {
+      msg = { ...msg, payload: { ...(msg.payload as DMXValues) } };
+    }
+
     this.node.send(msg);
     this.resetKeepalive();
   }
 
   protected emitFull(universe: number): void {
     const full = this.data?.get(universe) ?? this.getNulledUniverse();
-    this.sendData({ universe, payload: { ...full } });
+    this.sendData({ universe, payload: full });
   }
 
   protected resetKeepalive(): void {
