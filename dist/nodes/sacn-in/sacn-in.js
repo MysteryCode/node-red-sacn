@@ -50,8 +50,7 @@ class NodeHandler {
         });
         if (config.mode === "passthrough") {
             this.sACN.on("packet", (packet) => {
-                const changed = this.hasChanges(packet.payload, packet.universe);
-                const payload = this.parsePayload(packet.payload, packet.universe);
+                const { payload, changed } = this.applyFrame(packet.payload, packet.universe);
                 if (this.trigger === "always" || changed) {
                     this.sendData({
                         universe: packet.universe,
@@ -65,7 +64,7 @@ class NodeHandler {
         }
         else {
             this.sACN.on("changed", (data) => {
-                const payload = this.parsePayload(data.payload, data.universe);
+                const { payload } = this.applyFrame(data.payload, data.universe);
                 if (this.trigger !== "always") {
                     this.sendData({
                         universe: data.universe,
@@ -128,32 +127,27 @@ class NodeHandler {
         }
         return universe;
     }
-    hasChanges(payload, universe) {
-        const full = this.data?.get(universe);
-        if (full === undefined) {
-            return true;
+    applyFrame(incoming, universe) {
+        const previous = this.data?.get(universe);
+        const full = this.getNulledUniverse();
+        Object.keys(incoming).forEach((key) => {
+            const ch = parseInt(key, 10);
+            if (ch >= 1 && ch <= 512) {
+                full[ch] = incoming[ch];
+            }
+        });
+        let changed = false;
+        const changes = {};
+        for (let ch = 1; ch <= 512; ch++) {
+            const before = previous ? previous[ch] : 0;
+            if (before !== full[ch]) {
+                changed = true;
+                changes[ch] = full[ch];
+            }
         }
-        return Object.keys(payload).some((key) => {
-            const ch = parseInt(key, 10);
-            return full[ch] !== payload[ch];
-        });
-    }
-    parsePayload(payload, universe) {
-        const full = this.data?.get(universe) ?? this.getNulledUniverse();
-        Object.keys(payload).forEach((key) => {
-            const ch = parseInt(key, 10);
-            full[ch] = payload[ch];
-        });
         this.data?.set(universe, full);
-        if (this.config.output === "changes") {
-            const changes = {};
-            Object.keys(payload).forEach((key) => {
-                const ch = parseInt(key, 10);
-                changes[ch] = payload[ch];
-            });
-            return changes;
-        }
-        return full;
+        const payload = this.config.output === "changes" ? changes : full;
+        return { payload, changed };
     }
     sendData(msg) {
         this.node.send(msg);

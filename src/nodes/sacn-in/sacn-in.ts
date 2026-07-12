@@ -98,8 +98,7 @@ class NodeHandler {
     // handle sacn packets according to the configured output trigger
     if (config.mode === "passthrough") {
       this.sACN.on("packet", (packet: Packet) => {
-        const changed = this.hasChanges(packet.payload, packet.universe);
-        const payload = this.parsePayload(packet.payload, packet.universe);
+        const { payload, changed } = this.applyFrame(packet.payload, packet.universe);
 
         if (this.trigger === "always" || changed) {
           this.sendData({
@@ -114,7 +113,7 @@ class NodeHandler {
     } else {
       // htp / ltp — merged output
       (this.sACN as MergingReceiver).on("changed", (data) => {
-        const payload = this.parsePayload(data.payload, data.universe);
+        const { payload } = this.applyFrame(data.payload, data.universe);
 
         // in "always" mode the packet listener below emits on every packet instead
         if (this.trigger !== "always") {
@@ -205,40 +204,35 @@ class NodeHandler {
     return universe;
   }
 
-  protected hasChanges(payload: DMXValues, universe: number): boolean {
-    const full = this.data?.get(universe);
-    if (full === undefined) {
-      return true;
+  protected applyFrame(incoming: DMXValues, universe: number): { payload: DMXValues; changed: boolean } {
+    // an sACN data packet always describes the complete universe; channels that are
+    // absent from the received payload are deliberately 0, not unchanged. Rebuild the
+    // full state from a zeroed base so a channel fading to 0 is reflected correctly.
+    const previous = this.data?.get(universe);
+    const full = this.getNulledUniverse();
+
+    Object.keys(incoming).forEach((key) => {
+      const ch = parseInt(key, 10);
+      if (ch >= 1 && ch <= 512) {
+        full[ch] = incoming[ch];
+      }
+    });
+
+    let changed = false;
+    const changes: DMXValues = {};
+    for (let ch = 1; ch <= 512; ch++) {
+      const before = previous ? previous[ch] : 0;
+      if (before !== full[ch]) {
+        changed = true;
+        changes[ch] = full[ch];
+      }
     }
-
-    return Object.keys(payload).some((key) => {
-      const ch = parseInt(key, 10);
-      return full[ch] !== payload[ch];
-    });
-  }
-
-  protected parsePayload(payload: DMXValues, universe: number): DMXValues {
-    // always maintain the full state of the universe (needed for keepalive / clear)
-    const full: DMXValues = this.data?.get(universe) ?? this.getNulledUniverse();
-
-    Object.keys(payload).forEach((key) => {
-      const ch = parseInt(key, 10);
-      full[ch] = payload[ch];
-    });
 
     this.data?.set(universe, full);
 
-    if (this.config.output === "changes") {
-      const changes: DMXValues = {};
-      Object.keys(payload).forEach((key) => {
-        const ch = parseInt(key, 10);
-        changes[ch] = payload[ch];
-      });
+    const payload = this.config.output === "changes" ? changes : full;
 
-      return changes;
-    }
-
-    return full;
+    return { payload, changed };
   }
 
   protected sendData(msg: NodeMessage): void {
