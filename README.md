@@ -30,17 +30,17 @@ This node can be used to read one or multiple universes sent by sACN.
 
 #### Parameters:
 
-| Parameter  | Description                                                                                                                   | Possible Values                                                | Default Value                | Mandatory |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- | --------- |
-| universe   | The universe that is meant to be observed.                                                                                    | `\d+` (`1` to `63999`)                                         | `1`                          | yes       |
-| mode       | Defines whether the node returns the values of every read sACN package (passthrough mode), or merged values using HTP or LTP. | `passthrough`, `htp`, `ltp`                                    | `htp`                        | yes       |
-| output     | Defines whether the node sends only changed values or the whole universe.                                                      | `full`, `changes`                                              | `full`                       | yes       |
-| trigger    | Controls when a message is emitted: only on change, on every received packet, or on change plus a cyclic keepalive re-emit.    | `changes`, `always`, `interval`                                | `changes`                    | yes       |
-| interval   | Keepalive interval in milliseconds for the `interval` trigger; the full universe is re-emitted when no change arrives in time. | `\d+`                                                          | `1000`                       | no        |
-| clearOnUniverseChange | When the observed universe is switched at runtime, emit a full universe of zeros until real data for the new universe arrives. | `true`, `false`                                     | `false`                      | no        |
-| values     | Emit channel values as a percentage (0–100) or as raw DMX values (0–255).                                                     | `percent`, `absolute`                                          | `percent`                    | yes       |
-| IP-address | IP-Address of the network-interface that should be used for reading from sACN.                                                | `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\` (_any valid ip-address_) | _empty_                      | no        |
-| port       | The network port which should be used for reading sACN.                                                                       | `\d+`                                                          | _empty_ (defaults to `5568`) | no        |
+| Parameter             | Description                                                                                                                    | Possible Values                                                | Default Value                | Mandatory |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------- | --------- |
+| universe              | The universe that is meant to be observed.                                                                                     | `\d+` (`1` to `63999`)                                         | `1`                          | yes       |
+| mode                  | Defines whether the node returns the values of every read sACN package (passthrough mode), or merged values using HTP or LTP.  | `passthrough`, `htp`, `ltp`                                    | `htp`                        | yes       |
+| output                | Defines whether the node sends only changed values or the whole universe.                                                      | `full`, `changes`                                              | `full`                       | yes       |
+| trigger               | Controls when a message is emitted: only on change, on every received packet, or on change plus a cyclic keepalive re-emit.    | `changes`, `always`, `interval`                                | `changes`                    | yes       |
+| interval              | Keepalive interval in milliseconds for the `interval` trigger; the full universe is re-emitted when no change arrives in time. | `\d+`                                                          | `1000`                       | no        |
+| clearOnUniverseChange | When the observed universe is switched at runtime, emit a full universe of zeros until real data for the new universe arrives. | `true`, `false`                                                | `false`                      | no        |
+| values                | Emit channel values as a percentage (0–100) or as raw DMX values (0–255).                                                      | `percent`, `absolute`                                          | `percent`                    | yes       |
+| IP-address            | IP-Address of the network-interface that should be used for reading from sACN.                                                 | `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\` (_any valid ip-address_) | _empty_                      | no        |
+| port                  | The network port which should be used for reading sACN.                                                                        | `\d+`                                                          | _empty_ (defaults to `5568`) | no        |
 
 #### Input:
 
@@ -69,16 +69,16 @@ This node can be used to send one universe using sACN.
 
 #### Parameters:
 
-| Parameter   | Description                                                               | Possible Values                                                | Default Value                | Mandatory |
-| ----------- | ------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- | --------- |
-| universe    | The universe that is meant to be observed.                                | `\d+` (`1` to `63999`)                                         | `1`                          | yes       |
-| source-name | The name for the sACN-sender that should be displayed within the network. | _any string below 50 characters_                               | `Node-RED`                   | yes       |
-| speed       | Defines the frequency for sending sACN-packages                           | `once (0Hz)`, `24Hz`, `27Hz`, `30Hz`, `40Hz`, `44Hz`           | `0Hz`                        | yes       |
-| priority    | The priority that should be used for the sACN-sender.                     | `\d+` (`1` to `200`)                                           | `100`                        | yes       |
-| values      | Interpret the payload as a percentage (0–100) or as raw DMX values (0–255). | `percent`, `absolute`                                         | `percent`                    | yes       |
-| blank-on-stop | Send an all-zero frame before closing so receivers go dark on stop.     | `true`, `false`                                                | `false`                      | no        |
-| IP-address  | IP-Address of the network-interface that should be used for sending sACN. | `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\` (_any valid ip-address_) | _empty_                      | no        |
-| port        | The network port which should be used for reading sACN.                   | `\d+`                                                          | _empty_ (defaults to `5568`) | no        |
+| Parameter     | Description                                                                 | Possible Values                                                | Default Value                | Mandatory |
+| ------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- | --------- |
+| universe      | The universe that is meant to be observed.                                  | `\d+` (`1` to `63999`)                                         | `1`                          | yes       |
+| source-name   | The name for the sACN-sender that should be displayed within the network.   | _any string below 50 characters_                               | `Node-RED`                   | yes       |
+| speed         | Defines the frequency for sending sACN-packages                             | `once (0Hz)`, `24Hz`, `27Hz`, `30Hz`, `40Hz`, `44Hz`           | `0Hz`                        | yes       |
+| priority      | The priority that should be used for the sACN-sender.                       | `\d+` (`1` to `200`)                                           | `100`                        | yes       |
+| values        | Interpret the payload as a percentage (0–100) or as raw DMX values (0–255). | `percent`, `absolute`                                          | `percent`                    | yes       |
+| blank-on-stop | Send an all-zero frame before closing so receivers go dark on stop.         | `true`, `false`                                                | `false`                      | no        |
+| IP-address    | IP-Address of the network-interface that should be used for sending sACN.   | `\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\` (_any valid ip-address_) | _empty_                      | no        |
+| port          | The network port which should be used for reading sACN.                     | `\d+`                                                          | _empty_ (defaults to `5568`) | no        |
 
 #### Expected input:
 

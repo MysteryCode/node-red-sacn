@@ -56,11 +56,16 @@ function buildNodeForm(node, source, target) {
 
   const initJSLines = initJS.split("\n");
   html.push('<script type="text/javascript">');
+  // wrap in an IIFE so top-level declarations (e.g. `const def`, helper functions)
+  // stay local; multiple node editor scripts share one global scope and would
+  // otherwise collide ("Identifier 'def' has already been declared").
+  html.push("    (function () {");
   initJSLines.forEach((line) => {
     if (line.length > 0) {
-      html.push(`    ${line}`);
+      html.push(`        ${line}`);
     }
   });
+  html.push("    })();");
   html.push("</script>");
 
   html.push("");
