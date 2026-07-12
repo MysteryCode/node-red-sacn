@@ -38,6 +38,15 @@ class NodeHandler {
                 priority: config.priority || 100,
             });
         });
+        this.setStatus();
+    }
+    setStatus() {
+        const rate = this.config.speed !== undefined && this.config.speed > 0 ? `${this.config.speed} Hz` : "once";
+        this.node.status({
+            fill: "green",
+            shape: "dot",
+            text: `Universe ${this.config.universe} · ${rate}`,
+        });
     }
 }
 exports.default = (RED) => {

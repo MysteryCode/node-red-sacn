@@ -74,6 +74,18 @@ class NodeHandler {
         priority: config.priority || 100,
       });
     });
+
+    this.setStatus();
+  }
+
+  protected setStatus(): void {
+    const rate = this.config.speed !== undefined && this.config.speed > 0 ? `${this.config.speed} Hz` : "once";
+
+    this.node.status({
+      fill: "green",
+      shape: "dot",
+      text: `Universe ${this.config.universe} · ${rate}`,
+    });
   }
 }
 
