@@ -1,14 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const dmx_1 = require("../../lib/dmx");
+const scene_store_1 = require("../../lib/scene-store");
 class NodeHandler {
     node;
     config;
     scale;
-    constructor(node, config) {
+    store;
+    scenes;
+    playingScene = null;
+    constructor(node, config, store) {
         this.node = node;
         this.config = config;
         this.scale = config.values ?? "percent";
+        this.store = store;
+        this.scenes = store.load();
         this.node.on("input", (msg) => {
             const message = msg;
             switch (message.action || "undefined") {
@@ -194,19 +200,19 @@ class NodeHandler {
         return true;
     }
     handleSave(message) {
-        const scene = {
+        this.scenes[message.scene] = {
             scene: message.scene,
             data: message.payload,
         };
-        this.node.context().set(`scene-${message.scene}`, scene);
+        this.store.save(this.scenes);
     }
     handlePlay(message) {
-        const data = this.node.context().get(`scene-${message.scene}`);
+        const data = this.scenes[message.scene];
         if (!data) {
             this.node.warn(`Cannot play scene no. ${message.scene} since it has not been recorded yet.`);
             return;
         }
-        this.node.context().set("playingScene", message.scene);
+        this.playingScene = message.scene;
         let payload;
         let universe = undefined;
         const universes = Object.keys(data.data);
@@ -232,9 +238,9 @@ class NodeHandler {
     }
     handleReset(message) {
         const resetScene = (scene) => {
-            const data = this.node.context().get(`scene-${scene}`);
-            if (this.node.context().get("playingScene") === scene) {
-                this.node.context().set("playingScene", null);
+            const data = this.scenes[scene];
+            if (this.playingScene === scene) {
+                this.playingScene = null;
                 this.node.status({
                     fill: "green",
                     shape: "ring",
@@ -264,27 +270,23 @@ class NodeHandler {
                     this.node.send(out);
                 }
             }
-            this.node.context().set(`scene-${scene}`, undefined);
+            delete this.scenes[scene];
         };
         if (message.scene) {
             resetScene(message.scene);
         }
         else {
-            this.node
-                .context()
-                .keys()
-                .forEach((key) => {
-                const matches = key.match(/^scene-(\d+)/);
-                if (matches !== null) {
-                    resetScene(parseInt(matches[1], 10));
-                }
+            Object.keys(this.scenes).forEach((key) => {
+                resetScene(parseInt(key, 10));
             });
         }
+        this.store.save(this.scenes);
     }
 }
 exports.default = (RED) => {
     RED.nodes.registerType("scene-controller", function (config) {
         RED.nodes.createNode(this, config);
-        new NodeHandler(this, config);
+        const baseDir = RED.settings.userDir ?? process.cwd();
+        new NodeHandler(this, config, new scene_store_1.SceneStore(baseDir, this.id));
     });
 };

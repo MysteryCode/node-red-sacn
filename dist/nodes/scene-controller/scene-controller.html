@@ -21,9 +21,9 @@
     <p>Records DMX scenes and plays them back later.</p>
     <h3>Details</h3>
     <p>
-        The node stores DMX values for one or more universes as named <b>scenes</b> in the node's
-        context and replays them on demand. The requested operation is selected via the
-        <code>action</code> property of the incoming message:
+        The node stores DMX values for one or more universes as named <b>scenes</b> on disk (in the
+        Node-RED user directory) so they survive a restart, and replays them on demand. The requested
+        operation is selected via the <code>action</code> property of the incoming message:
     </p>
     <ul>
         <li><code>save</code> - store the <code>payload</code> as the given scene.</li>
