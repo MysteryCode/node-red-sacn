@@ -35,8 +35,8 @@ class NodeHandler {
         });
     }
     validateUniverse(universe) {
-        if (universe === undefined || isNaN(universe) || universe < 1 || universe > 65279) {
-            throw new Error(`The universe number '${universe}' (${typeof universe}) is invalid or not between 1 and 65279.`);
+        if (universe === undefined || isNaN(universe) || universe < 1 || universe > 63999) {
+            throw new Error(`The universe number '${universe}' (${typeof universe}) is invalid or not between 1 and 63999.`);
         }
     }
     validateChannel(channel, universe, firstChannel = 1, lastChannel = 512) {

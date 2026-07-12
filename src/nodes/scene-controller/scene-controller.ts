@@ -84,8 +84,8 @@ class NodeHandler {
   }
 
   protected validateUniverse(universe: number | undefined): void {
-    if (universe === undefined || isNaN(universe) || universe < 1 || universe > 65279) {
-      throw new Error(`The universe number '${universe}' (${typeof universe}) is invalid or not between 1 and 65279.`);
+    if (universe === undefined || isNaN(universe) || universe < 1 || universe > 63999) {
+      throw new Error(`The universe number '${universe}' (${typeof universe}) is invalid or not between 1 and 63999.`);
     }
   }
 
