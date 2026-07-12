@@ -8,13 +8,15 @@ class NodeHandler {
     scale;
     store;
     scenes;
-    playingScene = null;
+    playMode;
+    activeScenes = new Set();
     constructor(node, config, store) {
         this.node = node;
         this.config = config;
         this.scale = config.values ?? "percent";
         this.store = store;
         this.scenes = store.load();
+        this.playMode = config.playMode ?? "switch";
         this.node.on("input", (msg) => {
             const message = msg;
             switch (message.action || "undefined") {
@@ -26,6 +28,11 @@ class NodeHandler {
                 case "play":
                     if (this.validatePlay(message)) {
                         this.handlePlay(message);
+                    }
+                    break;
+                case "stop":
+                    if (this.validateStop(message)) {
+                        this.handleStop(message);
                     }
                     break;
                 case "reset":
@@ -196,6 +203,12 @@ class NodeHandler {
         }
         return true;
     }
+    validateStop(message) {
+        if (!this.validateScene(message)) {
+            return false;
+        }
+        return true;
+    }
     validateReset(_) {
         return true;
     }
@@ -206,26 +219,51 @@ class NodeHandler {
         };
         this.store.save(this.scenes);
     }
-    handlePlay(message) {
-        const data = this.scenes[message.scene];
-        if (!data) {
-            this.node.warn(`Cannot play scene no. ${message.scene} since it has not been recorded yet.`);
-            return;
+    mergeActiveScenes() {
+        const combined = {};
+        for (const id of this.activeScenes) {
+            const scene = this.scenes[id];
+            if (!scene) {
+                continue;
+            }
+            for (const universeKey of Object.keys(scene.data)) {
+                const universe = parseInt(universeKey, 10);
+                const channels = scene.data[universe];
+                const target = combined[universe] ?? (combined[universe] = {});
+                for (const channelKey of Object.keys(channels)) {
+                    const channel = parseInt(channelKey, 10);
+                    target[channel] = Math.max(target[channel] ?? 0, channels[channel]);
+                }
+            }
         }
-        this.playingScene = message.scene;
-        let payload;
-        let universe = undefined;
-        const universes = Object.keys(data.data);
+        return combined;
+    }
+    shapeOutput(universes) {
+        const keys = Object.keys(universes);
+        if (keys.length === 1) {
+            const universe = parseInt(keys[0], 10);
+            return { payload: universes[universe], universe };
+        }
+        return { payload: universes, universe: undefined };
+    }
+    buildBlackout(data) {
+        const universes = Object.keys(data);
         if (universes.length === 1) {
-            universe = parseInt(universes[0], 10);
-            payload = data.data[universe];
+            return { payload: (0, dmx_1.nulledUniverse)(), universe: parseInt(universes[0], 10) };
         }
-        else {
-            payload = data.data;
-        }
+        const payload = {};
+        universes.forEach((universe) => {
+            payload[parseInt(universe, 10)] = (0, dmx_1.nulledUniverse)();
+        });
+        return { payload, universe: undefined };
+    }
+    emitActiveLook(scene, topic) {
+        const { payload, universe } = this.shapeOutput(this.mergeActiveScenes());
+        const count = this.activeScenes.size;
+        const label = count === 1 ? (topic ?? `Scene ${scene}`) : `${count} scenes`;
         const out = {
-            topic: message.topic ?? `Scene ${message.scene}`,
-            scene: message.scene,
+            topic: topic ?? label,
+            scene: scene,
             payload: payload,
             universe: universe,
         };
@@ -233,33 +271,65 @@ class NodeHandler {
         this.node.status({
             fill: "green",
             shape: "dot",
-            text: message.topic ?? `Scene ${message.scene}`,
+            text: label,
         });
+    }
+    standby() {
+        this.node.status({
+            fill: "green",
+            shape: "ring",
+            text: "Standby",
+        });
+    }
+    handlePlay(message) {
+        const data = this.scenes[message.scene];
+        if (!data) {
+            this.node.warn(`Cannot play scene no. ${message.scene} since it has not been recorded yet.`);
+            return;
+        }
+        if (this.playMode === "switch") {
+            this.activeScenes = new Set([message.scene]);
+        }
+        else {
+            this.activeScenes.add(message.scene);
+        }
+        this.emitActiveLook(message.scene, message.topic);
+    }
+    handleStop(message) {
+        if (!this.activeScenes.has(message.scene)) {
+            return;
+        }
+        const stopped = this.scenes[message.scene];
+        this.activeScenes.delete(message.scene);
+        if (this.activeScenes.size === 0) {
+            this.standby();
+            if (this.config.blackoutOnStop && stopped) {
+                const { payload, universe } = this.buildBlackout(stopped.data);
+                const out = {
+                    topic: `Scene ${message.scene}`,
+                    scene: message.scene,
+                    payload: payload,
+                    universe: universe,
+                    stopped: true,
+                };
+                this.node.send(out);
+            }
+            return;
+        }
+        this.emitActiveLook(message.scene, message.topic);
     }
     handleReset(message) {
         const resetScene = (scene) => {
             const data = this.scenes[scene];
-            if (this.playingScene === scene) {
-                this.playingScene = null;
-                this.node.status({
-                    fill: "green",
-                    shape: "ring",
-                    text: "Standby",
-                });
+            const wasActive = this.activeScenes.delete(scene);
+            delete this.scenes[scene];
+            if (!wasActive) {
+                return;
+            }
+            if (this.activeScenes.size === 0) {
+                this.standby();
                 if (data) {
-                    const universes = Object.keys(data.data);
-                    let universe = undefined;
-                    let payload;
-                    if (universes.length === 1) {
-                        universe = parseInt(universes[0], 10);
-                        payload = (0, dmx_1.nulledUniverse)();
-                    }
-                    else {
-                        payload = {};
-                        universes.forEach((universe) => {
-                            payload[parseInt(universe, 10)] = (0, dmx_1.nulledUniverse)();
-                        });
-                    }
+                    const { payload, universe } = this.buildBlackout(data.data);
                     const out = {
                         topic: `Scene ${scene}`,
                         scene: scene,
@@ -270,7 +340,9 @@ class NodeHandler {
                     this.node.send(out);
                 }
             }
-            delete this.scenes[scene];
+            else {
+                this.emitActiveLook(scene);
+            }
         };
         if (message.scene) {
             resetScene(message.scene);

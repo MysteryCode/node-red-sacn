@@ -3,7 +3,10 @@ import { NodeMessage } from "@node-red/registry";
 import { DMXValues, maxValue, nulledUniverse, ValueScale } from "../../lib/dmx";
 import { SceneStore } from "../../lib/scene-store";
 
-type SceneControllerAction = "save" | "play" | "reset";
+type SceneControllerAction = "save" | "play" | "stop" | "reset";
+
+/** whether a new play replaces the running look ("switch") or stacks on top of it ("add") */
+type PlayMode = "switch" | "add";
 
 interface Universes {
   [key: number]: DMXValues;
@@ -16,6 +19,8 @@ interface Scene {
 
 export interface Config extends NodeDef {
   values?: ValueScale;
+  playMode?: PlayMode;
+  blackoutOnStop?: boolean;
 }
 
 type MessageInPayload =
@@ -36,6 +41,7 @@ interface MessageIn extends NodeMessage {
 interface MessageOut extends NodeMessage {
   scene: number;
   reset?: boolean;
+  stopped?: boolean;
   universe?: number | undefined;
   payload: DMXValues | Universes;
 }
@@ -51,7 +57,10 @@ class NodeHandler {
 
   protected scenes: Record<number, Scene>;
 
-  protected playingScene: number | null = null;
+  protected playMode: PlayMode;
+
+  /** scenes whose look is currently on the output; more than one only in "add" mode */
+  protected activeScenes: Set<number> = new Set();
 
   constructor(node: Node<Config>, config: Config, store: SceneStore<Scene>) {
     this.node = node;
@@ -59,6 +68,7 @@ class NodeHandler {
     this.scale = config.values ?? "percent";
     this.store = store;
     this.scenes = store.load();
+    this.playMode = config.playMode ?? "switch";
 
     this.node.on("input", (msg) => {
       const message: MessageIn = msg as MessageIn;
@@ -72,6 +82,11 @@ class NodeHandler {
         case "play":
           if (this.validatePlay(message)) {
             this.handlePlay(message);
+          }
+          break;
+        case "stop":
+          if (this.validateStop(message)) {
+            this.handleStop(message);
           }
           break;
         case "reset":
@@ -303,6 +318,14 @@ class NodeHandler {
     return true;
   }
 
+  protected validateStop(message: MessageIn) {
+    if (!this.validateScene(message)) {
+      return false;
+    }
+
+    return true;
+  }
+
   protected validateReset(_: MessageIn) {
     // nothing required yet.
     return true;
@@ -316,29 +339,69 @@ class NodeHandler {
     this.store.save(this.scenes);
   }
 
-  protected handlePlay(message: MessageIn): void {
-    const data: Scene | undefined = this.scenes[message.scene];
-    if (!data) {
-      this.node.warn(`Cannot play scene no. ${message.scene} since it has not been recorded yet.`);
+  /** combine every active scene into one look, per channel by HTP (highest value wins) */
+  protected mergeActiveScenes(): Universes {
+    const combined: Universes = {};
 
-      return;
+    for (const id of this.activeScenes) {
+      const scene = this.scenes[id];
+      if (!scene) {
+        continue;
+      }
+
+      for (const universeKey of Object.keys(scene.data)) {
+        const universe = parseInt(universeKey, 10);
+        const channels = scene.data[universe];
+        const target = combined[universe] ?? (combined[universe] = {});
+
+        for (const channelKey of Object.keys(channels)) {
+          const channel = parseInt(channelKey, 10);
+          target[channel] = Math.max(target[channel] ?? 0, channels[channel]);
+        }
+      }
     }
 
-    this.playingScene = message.scene;
+    return combined;
+  }
 
-    let payload: Universes | DMXValues;
-    let universe: number | undefined = undefined;
-    const universes = Object.keys(data.data);
+  /** shape universes for output: a single universe is flattened + tagged with its number */
+  protected shapeOutput(universes: Universes): { payload: DMXValues | Universes; universe: number | undefined } {
+    const keys = Object.keys(universes);
+
+    if (keys.length === 1) {
+      const universe = parseInt(keys[0], 10);
+
+      return { payload: universes[universe], universe };
+    }
+
+    return { payload: universes, universe: undefined };
+  }
+
+  /** build an all-zero look for exactly the universes the given scene covers */
+  protected buildBlackout(data: Universes): { payload: DMXValues | Universes; universe: number | undefined } {
+    const universes = Object.keys(data);
+
     if (universes.length === 1) {
-      universe = parseInt(universes[0], 10);
-      payload = data.data[universe];
-    } else {
-      payload = data.data;
+      return { payload: nulledUniverse(), universe: parseInt(universes[0], 10) };
     }
+
+    const payload: Universes = {};
+    universes.forEach((universe) => {
+      payload[parseInt(universe, 10)] = nulledUniverse();
+    });
+
+    return { payload, universe: undefined };
+  }
+
+  /** emit the combined look of all currently active scenes and reflect it in the node status */
+  protected emitActiveLook(scene: number, topic?: string): void {
+    const { payload, universe } = this.shapeOutput(this.mergeActiveScenes());
+    const count = this.activeScenes.size;
+    const label = count === 1 ? (topic ?? `Scene ${scene}`) : `${count} scenes`;
 
     const out: MessageOut = {
-      topic: message.topic ?? `Scene ${message.scene}`,
-      scene: message.scene,
+      topic: topic ?? label,
+      scene: scene,
       payload: payload,
       universe: universe,
     };
@@ -347,36 +410,85 @@ class NodeHandler {
     this.node.status({
       fill: "green",
       shape: "dot",
-      text: message.topic ?? `Scene ${message.scene}`,
+      text: label,
     });
+  }
+
+  protected standby(): void {
+    this.node.status({
+      fill: "green",
+      shape: "ring",
+      text: "Standby",
+    });
+  }
+
+  protected handlePlay(message: MessageIn): void {
+    const data: Scene | undefined = this.scenes[message.scene];
+    if (!data) {
+      this.node.warn(`Cannot play scene no. ${message.scene} since it has not been recorded yet.`);
+
+      return;
+    }
+
+    // "switch" replaces the running look; "add" stacks the new scene on top of it (HTP)
+    if (this.playMode === "switch") {
+      this.activeScenes = new Set([message.scene]);
+    } else {
+      this.activeScenes.add(message.scene);
+    }
+
+    this.emitActiveLook(message.scene, message.topic);
+  }
+
+  protected handleStop(message: MessageIn): void {
+    // stopping a scene that is not on the output has no effect
+    if (!this.activeScenes.has(message.scene)) {
+      return;
+    }
+
+    const stopped: Scene | undefined = this.scenes[message.scene];
+    this.activeScenes.delete(message.scene);
+
+    if (this.activeScenes.size === 0) {
+      this.standby();
+
+      // the scene keeps its stored data; the output only goes dark when configured
+      if (this.config.blackoutOnStop && stopped) {
+        const { payload, universe } = this.buildBlackout(stopped.data);
+
+        const out: MessageOut = {
+          topic: `Scene ${message.scene}`,
+          scene: message.scene,
+          payload: payload,
+          universe: universe,
+          stopped: true,
+        };
+        this.node.send(out);
+      }
+
+      return;
+    }
+
+    // other scenes remain active: re-emit the combined look without the stopped one
+    this.emitActiveLook(message.scene, message.topic);
   }
 
   protected handleReset(message: MessageIn): void {
     const resetScene = (scene: number) => {
       const data: Scene | undefined = this.scenes[scene];
+      const wasActive = this.activeScenes.delete(scene);
 
-      if (this.playingScene === scene) {
-        this.playingScene = null;
+      delete this.scenes[scene];
 
-        this.node.status({
-          fill: "green",
-          shape: "ring",
-          text: "Standby",
-        });
+      if (!wasActive) {
+        return;
+      }
+
+      if (this.activeScenes.size === 0) {
+        this.standby();
 
         if (data) {
-          const universes = Object.keys(data.data);
-          let universe: number | undefined = undefined;
-          let payload: DMXValues | Universes;
-          if (universes.length === 1) {
-            universe = parseInt(universes[0], 10);
-            payload = nulledUniverse();
-          } else {
-            payload = {};
-            universes.forEach((universe) => {
-              payload[parseInt(universe, 10)] = nulledUniverse();
-            });
-          }
+          const { payload, universe } = this.buildBlackout(data.data);
 
           const out: MessageOut = {
             topic: `Scene ${scene}`,
@@ -387,9 +499,10 @@ class NodeHandler {
           };
           this.node.send(out);
         }
+      } else {
+        // in "add" mode other scenes stay on the output: re-emit the remaining look
+        this.emitActiveLook(scene);
       }
-
-      delete this.scenes[scene];
     };
 
     if (message.scene) {

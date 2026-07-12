@@ -4,6 +4,8 @@ declare const RED: EditorRED;
 
 interface Defaults extends EditorNodeProperties {
   values: "percent" | "absolute";
+  playMode: "switch" | "add";
+  blackoutOnStop: boolean;
 }
 
 const def: EditorNodeDef<Defaults> = {
@@ -16,6 +18,13 @@ const def: EditorNodeDef<Defaults> = {
     values: {
       value: "percent",
       required: true,
+    },
+    playMode: {
+      value: "switch",
+      required: true,
+    },
+    blackoutOnStop: {
+      value: false,
     },
   },
   inputs: 1,

@@ -3,7 +3,11 @@
     "label": {
       "values": "values",
       "values_percent": "percent (0–100)",
-      "values_absolute": "absolute (0–255)"
+      "values_absolute": "absolute (0–255)",
+      "playMode": "Playback",
+      "playMode_switch": "Switch (new scene replaces)",
+      "playMode_add": "Add (stack scenes, HTP)",
+      "blackoutOnStop": "Send zero values on stop"
     }
   }
 }
