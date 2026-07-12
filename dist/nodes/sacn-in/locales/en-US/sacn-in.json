@@ -16,7 +16,10 @@
       "trigger_always": "every packet",
       "trigger_interval": "changes + cyclic",
       "interval": "interval (ms)",
-      "clearOnUniverseChange": "blank on universe change"
+      "clearOnUniverseChange": "blank on universe change",
+      "values": "values",
+      "values_percent": "percent (0–100)",
+      "values_absolute": "absolute (0–255)"
     }
   }
 }

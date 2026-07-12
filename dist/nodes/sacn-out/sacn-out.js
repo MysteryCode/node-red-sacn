@@ -17,6 +17,9 @@ class NodeHandler {
             reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
             minRefreshRate: config.speed !== undefined ? config.speed : 0,
             port: network.port,
+            defaultPacketOptions: {
+                useRawDmxValues: (config.values ?? "percent") === "absolute",
+            },
         };
         if (network.iface !== undefined) {
             this.options.iface = network.iface;

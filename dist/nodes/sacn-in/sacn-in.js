@@ -11,11 +11,13 @@ class NodeHandler {
     currentUniverse;
     trigger;
     interval;
+    scale;
     keepaliveTimer;
     constructor(node, config) {
         this.node = node;
         this.config = config;
         this.currentUniverse = config.universe;
+        this.scale = config.values ?? "percent";
         this.trigger = config.trigger ?? (config.mode === "passthrough" ? "always" : "changes");
         this.interval = config.interval !== undefined && config.interval > 0 ? config.interval : 1000;
         const network = (0, network_1.resolveNetworkOptions)(config);
@@ -128,7 +130,7 @@ class NodeHandler {
         Object.keys(incoming).forEach((key) => {
             const ch = parseInt(key, 10);
             if (ch >= 1 && ch <= 512) {
-                full[ch] = incoming[ch];
+                full[ch] = (0, dmx_1.fromPercent)(incoming[ch], this.scale);
             }
         });
         let changed = false;

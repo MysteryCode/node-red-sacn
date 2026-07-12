@@ -13,7 +13,10 @@
       "speed_44": "maximum (44Hz)",
       "speed_once": "once (0Hz)",
       "universe": "universe",
-      "blankOnClose": "blank output on stop"
+      "blankOnClose": "blank output on stop",
+      "values": "values",
+      "values_percent": "percent (0–100)",
+      "values_absolute": "absolute (0–255)"
     }
   }
 }

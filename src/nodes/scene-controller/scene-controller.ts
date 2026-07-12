@@ -1,6 +1,6 @@
 import { Node, NodeAPI, NodeDef } from "node-red";
 import { NodeMessage } from "@node-red/registry";
-import { DMXValues, nulledUniverse } from "../../lib/dmx";
+import { DMXValues, maxValue, nulledUniverse, ValueScale } from "../../lib/dmx";
 
 type SceneControllerAction = "save" | "play" | "reset";
 
@@ -13,7 +13,9 @@ interface Scene {
   data: Universes;
 }
 
-export type Config = NodeDef;
+export interface Config extends NodeDef {
+  values?: ValueScale;
+}
 
 type MessageInPayload =
   | {
@@ -42,9 +44,12 @@ class NodeHandler {
 
   protected config: Config;
 
+  protected scale: ValueScale;
+
   constructor(node: Node<Config>, config: Config) {
     this.node = node;
     this.config = config;
+    this.scale = config.values ?? "percent";
 
     this.node.on("input", (msg) => {
       const message: MessageIn = msg as MessageIn;
@@ -100,9 +105,11 @@ class NodeHandler {
   }
 
   protected validateValue(value: number, channel: number, universe: number): void {
-    if (isNaN(value) || value < 0 || value > 255) {
+    const max = maxValue(this.scale);
+
+    if (isNaN(value) || value < 0 || value > max) {
       throw new Error(
-        `Value '${value}' (${typeof value}) for channel '${channel}' of universe '${universe}' is invalid or not between 0 and 255.`,
+        `Value '${value}' (${typeof value}) for channel '${channel}' of universe '${universe}' is invalid or not between 0 and ${max}.`,
       );
     }
   }
@@ -128,7 +135,8 @@ class NodeHandler {
       this.validateChannel(channel as number, universe, startIndex, endIndex);
 
       if (typeof value === "string") {
-        value = parseInt(value);
+        // parse as float so fractional percentage values keep their precision
+        value = parseFloat(value);
       }
 
       this.validateValue(value as number, channel as number, universe);
@@ -150,7 +158,8 @@ class NodeHandler {
       this.validateChannel(channel, universe, 0, 511);
 
       if (typeof value === "string") {
-        value = parseInt(value, 10);
+        // parse as float so fractional percentage values keep their precision
+        value = parseFloat(value);
       }
 
       this.validateValue(value as number, channel, universe);

@@ -7,8 +7,9 @@
     once per message or repeated continuously at the selected refresh rate.
 </p>
 <p>
-    DMX values in the <code>payload</code> are expected as a <b>percentage</b> and keyed by
-    DMX channel, starting at key <code>1</code> (not <code>0</code>).
+    DMX values in the <code>payload</code> are keyed by DMX channel, starting at key <code>1</code>
+    (not <code>0</code>). Depending on the <b>Values</b> setting they are expected as a
+    <b>percentage</b> (<code>0</code>–<code>100</code>) or as raw <b>DMX values</b> (<code>0</code>–<code>255</code>).
 </p>
 
 <h4>Configuration</h4>
@@ -21,6 +22,10 @@
     <dd>Refresh rate in Hz: <code>0</code> (once), <code>24</code>, <code>27</code>, <code>30</code>, <code>40</code> or <code>44</code>. Default <code>0</code>.</dd>
     <dt>Priority <span class="property-type">number</span></dt>
     <dd>Priority of the sender, <code>1</code> to <code>200</code>. Default <code>100</code>.</dd>
+    <dt>Values <span class="property-type">percent | absolute</span></dt>
+    <dd>Interpret the incoming payload as a percentage (<code>0</code>–<code>100</code>) or as raw DMX values (<code>0</code>–<code>255</code>). Default <code>percent</code>.</dd>
+    <dt class="optional">Blank output on stop <span class="property-type">boolean</span></dt>
+    <dd>Send an all-zero frame before closing so receivers go dark on stop/redeploy instead of holding the last look. Default <code>false</code>.</dd>
     <dt class="optional">Interface <span class="property-type">string</span></dt>
     <dd>IP address of the network interface used for sending. Leave empty to use the default interface.</dd>
     <dt class="optional">Port <span class="property-type">number</span></dt>

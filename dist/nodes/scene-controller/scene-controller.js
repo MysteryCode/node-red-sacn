@@ -4,9 +4,11 @@ const dmx_1 = require("../../lib/dmx");
 class NodeHandler {
     node;
     config;
+    scale;
     constructor(node, config) {
         this.node = node;
         this.config = config;
+        this.scale = config.values ?? "percent";
         this.node.on("input", (msg) => {
             const message = msg;
             switch (message.action || "undefined") {
@@ -46,8 +48,9 @@ class NodeHandler {
         }
     }
     validateValue(value, channel, universe) {
-        if (isNaN(value) || value < 0 || value > 255) {
-            throw new Error(`Value '${value}' (${typeof value}) for channel '${channel}' of universe '${universe}' is invalid or not between 0 and 255.`);
+        const max = (0, dmx_1.maxValue)(this.scale);
+        if (isNaN(value) || value < 0 || value > max) {
+            throw new Error(`Value '${value}' (${typeof value}) for channel '${channel}' of universe '${universe}' is invalid or not between 0 and ${max}.`);
         }
     }
     parseUniverseObject(input, universe) {
@@ -66,7 +69,7 @@ class NodeHandler {
             }
             this.validateChannel(channel, universe, startIndex, endIndex);
             if (typeof value === "string") {
-                value = parseInt(value);
+                value = parseFloat(value);
             }
             this.validateValue(value, channel, universe);
             output[channel] = value;
@@ -81,7 +84,7 @@ class NodeHandler {
         input.forEach((value, channel) => {
             this.validateChannel(channel, universe, 0, 511);
             if (typeof value === "string") {
-                value = parseInt(value, 10);
+                value = parseFloat(value);
             }
             this.validateValue(value, channel, universe);
             output[channel] = value;

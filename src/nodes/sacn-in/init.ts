@@ -11,6 +11,7 @@ interface Defaults extends EditorNodeProperties {
   trigger: "changes" | "always" | "interval";
   interval: number;
   clearOnUniverseChange: boolean;
+  values: "percent" | "absolute";
 }
 
 const def: EditorNodeDef<Defaults> = {
@@ -50,6 +51,10 @@ const def: EditorNodeDef<Defaults> = {
     },
     clearOnUniverseChange: {
       value: false,
+    },
+    values: {
+      value: "percent",
+      required: true,
     },
   },
   inputs: 1,

@@ -42,6 +42,16 @@
     <input type="number" id="node-input-priority" min="1" max="200" step="1" style="width:70%;"/>
 </div>
 <div class="form-row">
+    <label for="node-input-values">
+        <i class="fa fa-sliders"></i>
+        <span data-i18n="sacn-out.label.values"></span>
+    </label>
+    <select id="node-input-values" style="width:70%;">
+        <option value="percent" selected data-i18n="sacn-out.label.values_percent"></option>
+        <option value="absolute" data-i18n="sacn-out.label.values_absolute"></option>
+    </select>
+</div>
+<div class="form-row">
     <label for="node-input-blankOnClose" style="width:auto;">
         <i class="fa fa-eraser"></i>
         <span data-i18n="sacn-out.label.blankOnClose"></span>

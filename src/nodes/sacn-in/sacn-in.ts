@@ -1,7 +1,7 @@
 import { Node, NodeAPI, NodeDef } from "node-red";
 import { NodeMessage } from "@node-red/registry";
 import { Packet, Receiver, unstable_MergingReceiver as MergingReceiver } from "sacn";
-import { DMXValues, nulledUniverse } from "../../lib/dmx";
+import { DMXValues, fromPercent, nulledUniverse, ValueScale } from "../../lib/dmx";
 import { resolveNetworkOptions } from "../../lib/network";
 
 interface Config extends NodeDef {
@@ -14,6 +14,7 @@ interface Config extends NodeDef {
   trigger?: "changes" | "always" | "interval";
   interval?: number;
   clearOnUniverseChange?: boolean;
+  values?: ValueScale;
 }
 
 export interface MessageIn extends NodeMessage {
@@ -42,12 +43,15 @@ class NodeHandler {
 
   protected interval: number;
 
+  protected scale: ValueScale;
+
   protected keepaliveTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(node: Node<Config>, config: Config) {
     this.node = node;
     this.config = config;
     this.currentUniverse = config.universe;
+    this.scale = config.values ?? "percent";
 
     // resolve the output trigger; keep legacy behaviour for nodes without the field
     this.trigger = config.trigger ?? (config.mode === "passthrough" ? "always" : "changes");
@@ -208,7 +212,8 @@ class NodeHandler {
     Object.keys(incoming).forEach((key) => {
       const ch = parseInt(key, 10);
       if (ch >= 1 && ch <= 512) {
-        full[ch] = incoming[ch];
+        // the library always reports percentages; convert to the configured scale
+        full[ch] = fromPercent(incoming[ch], this.scale);
       }
     });
 

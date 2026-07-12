@@ -2,7 +2,7 @@ import { Node, NodeAPI, NodeDef } from "node-red";
 import { NodeMessage } from "@node-red/registry";
 import { Sender } from "sacn";
 import { Options } from "sacn/dist/packet";
-import { nulledUniverse } from "../../lib/dmx";
+import { nulledUniverse, ValueScale } from "../../lib/dmx";
 import { resolveNetworkOptions } from "../../lib/network";
 
 interface SenderProps {
@@ -10,7 +10,7 @@ interface SenderProps {
   port?: number;
   reuseAddr?: boolean;
   minRefreshRate?: number;
-  defaultPacketOptions?: Pick<Options, "cid" | "sourceName" | "priority">;
+  defaultPacketOptions?: Pick<Options, "cid" | "sourceName" | "priority" | "useRawDmxValues">;
   iface?: string;
   useUnicastDestination?: string;
 }
@@ -24,6 +24,7 @@ export interface Config extends NodeDef {
   priority?: number;
   speed?: number;
   blankOnClose?: boolean;
+  values?: ValueScale;
 }
 
 export type MessageIn = NodeMessage;
@@ -47,6 +48,11 @@ class NodeHandler {
       reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
       minRefreshRate: config.speed !== undefined ? config.speed : 0,
       port: network.port,
+      // in absolute mode the payload is already raw DMX (0–255); otherwise the
+      // library scales the percentage values (0–100) when building the packet
+      defaultPacketOptions: {
+        useRawDmxValues: (config.values ?? "percent") === "absolute",
+      },
     };
     if (network.iface !== undefined) {
       this.options.iface = network.iface;

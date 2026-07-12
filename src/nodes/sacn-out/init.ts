@@ -10,6 +10,7 @@ interface Defaults extends EditorNodeProperties {
   priority: number;
   sourceName: string;
   blankOnClose: boolean;
+  values: "percent" | "absolute";
 }
 
 const def: EditorNodeDef<Defaults> = {
@@ -45,6 +46,10 @@ const def: EditorNodeDef<Defaults> = {
     },
     blankOnClose: {
       value: false,
+    },
+    values: {
+      value: "percent",
+      required: true,
     },
   },
   inputs: 1,

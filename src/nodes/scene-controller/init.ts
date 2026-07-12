@@ -2,7 +2,9 @@ import { EditorNodeDef, EditorNodeProperties, EditorRED } from "node-red";
 
 declare const RED: EditorRED;
 
-type Defaults = EditorNodeProperties;
+interface Defaults extends EditorNodeProperties {
+  values: "percent" | "absolute";
+}
 
 const def: EditorNodeDef<Defaults> = {
   category: "sACN",
@@ -10,6 +12,10 @@ const def: EditorNodeDef<Defaults> = {
   defaults: {
     name: {
       value: "Scene-Controller",
+    },
+    values: {
+      value: "percent",
+      required: true,
     },
   },
   inputs: 1,

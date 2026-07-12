@@ -12,6 +12,9 @@
     "speed_44": "Maximum (44Hz)",
     "speed_once": "Einmalig (0Hz)",
     "universe": "Universum",
-    "blankOnClose": "Ausgabe beim Stoppen auf 0 setzen"
+    "blankOnClose": "Ausgabe beim Stoppen auf 0 setzen",
+    "values": "Werte",
+    "values_percent": "Prozent (0–100)",
+    "values_absolute": "Absolut (0–255)"
   }
 }
