@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-      - run: npm install
+      - run: npm ci
       - run: |
           npx tsc --noEmit
   eslint:
@@ -40,5 +40,5 @@ jobs:
         with:
           node-version: "24"
           cache: "npm"
-      - run: npm install
+      - run: npm ci
       - run: npx eslint .
