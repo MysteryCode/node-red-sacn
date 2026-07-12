@@ -1,5 +1,7 @@
 {
+  "paletteLabel": "sACN in",
   "label": {
+    "fallback": "sACN in · U{{universe}}",
     "interface": "IP-address of interface",
     "mode": "mode",
     "mode_direct": "direct",

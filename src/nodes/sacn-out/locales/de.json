@@ -1,5 +1,7 @@
 {
+  "paletteLabel": "sACN Ausgang",
   "label": {
+    "fallback": "sACN Ausgang · U{{universe}}",
     "interface": "IP-Adresse des Interfaces",
     "port": "Port",
     "priority": "Priorität",

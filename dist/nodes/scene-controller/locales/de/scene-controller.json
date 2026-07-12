@@ -1,6 +1,8 @@
 {
   "scene-controller": {
+    "paletteLabel": "Szenen-Controller",
     "label": {
+      "fallback": "Szenen-Controller",
       "values": "Werte",
       "values_percent": "Prozent (0–100)",
       "values_absolute": "Absolut (0–255)"
