@@ -11,7 +11,7 @@
         <i class="fa fa-hashtag"></i>
         <span data-i18n="sacn-in.label.universe"></span>
     </label>
-    <input type="text" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;"/>
+    <input type="number" id="node-input-universe" min="1" max="63999" step="1" style="width:70%;"/>
 </div>
 <div class="form-row">
     <label for="node-input-mode">
@@ -19,8 +19,8 @@
         <span data-i18n="sacn-in.label.mode"></span>
     </label>
     <select id="node-input-mode" style="width:70%;">
-        <option value="passthrough" selected data-i18n="sacn-in.label.mode_direct"></option>
-        <option value="htp" data-i18n="sacn-in.label.mode_htp"></option>
+        <option value="passthrough" data-i18n="sacn-in.label.mode_direct"></option>
+        <option value="htp" selected data-i18n="sacn-in.label.mode_htp"></option>
         <option value="ltp" data-i18n="sacn-in.label.mode_ltp"></option>
     </select>
 </div>
