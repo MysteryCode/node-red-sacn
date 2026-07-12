@@ -24,6 +24,10 @@ class NodeHandler {
             this.options.port = 5568;
         }
         this.sACN = new sacn_1.Sender(this.options);
+        this.sACN.on("error", (err) => {
+            this.node.error(err);
+            this.node.status({ fill: "red", shape: "dot", text: err.message || "sender error" });
+        });
         this.node.on("close", () => {
             this.sACN.close();
         });

@@ -83,6 +83,15 @@ class NodeHandler {
         throw new Error("[node-red-sacn] None or invalid mode selected.");
     }
 
+    // a socket error (bind failure, multicast membership, …) is emitted as an
+    // "error" event; without a listener Node.js would treat it as an uncaught
+    // exception and could take the whole runtime down. Log it and surface it on
+    // the node instead, and keep running so the rest of the flow is unaffected.
+    this.sACN.on("error", (err: Error) => {
+      this.node.error(err);
+      this.node.status({ fill: "red", shape: "dot", text: err.message || "receiver error" });
+    });
+
     // run cleanup when node is closed
     this.node.on("close", () => {
       // close all connections; terminate the receiver

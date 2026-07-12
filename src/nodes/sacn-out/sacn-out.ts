@@ -54,6 +54,14 @@ class NodeHandler {
 
     this.sACN = new Sender(this.options);
 
+    // a socket error is emitted as an "error" event; without a listener Node.js
+    // would treat it as an uncaught exception and could take the whole runtime
+    // down. Log it and surface it on the node instead, without throwing.
+    this.sACN.on("error", (err: Error) => {
+      this.node.error(err);
+      this.node.status({ fill: "red", shape: "dot", text: err.message || "sender error" });
+    });
+
     this.node.on("close", () => {
       // close all connections; terminate the receiver
       this.sACN.close();

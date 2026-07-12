@@ -41,6 +41,10 @@ class NodeHandler {
             default:
                 throw new Error("[node-red-sacn] None or invalid mode selected.");
         }
+        this.sACN.on("error", (err) => {
+            this.node.error(err);
+            this.node.status({ fill: "red", shape: "dot", text: err.message || "receiver error" });
+        });
         this.node.on("close", () => {
             this.sACN.close();
             if (this.keepaliveTimer) {
