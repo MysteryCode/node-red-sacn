@@ -19,9 +19,16 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.com/"
       - run: npm ci
+      - name: Type-check
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npx eslint .
+      - name: Build
+        run: npm run build
       - name: Read package.json
         id: package
-        uses: RadovanPelka/github-action-json@main
+        # pinned to a commit to avoid pulling an unreviewed moving ref
+        uses: RadovanPelka/github-action-json@c1e93581d313d6e1d56f7f67582d4051674ebc57 # main
         with:
           path: "package.json"
       - name: Remove old builds
