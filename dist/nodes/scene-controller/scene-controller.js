@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const dmx_1 = require("../../lib/dmx");
 class NodeHandler {
     node;
     config;
@@ -226,13 +227,6 @@ class NodeHandler {
             text: message.topic ?? `Scene ${message.scene}`,
         });
     }
-    getNulledUniverse() {
-        const universe = {};
-        for (let ch = 1; ch <= 512; ch++) {
-            universe[ch] = 0;
-        }
-        return universe;
-    }
     handleReset(message) {
         const resetScene = (scene) => {
             const data = this.node.context().get(`scene-${scene}`);
@@ -249,12 +243,12 @@ class NodeHandler {
                     let payload;
                     if (universes.length === 1) {
                         universe = parseInt(universes[0], 10);
-                        payload = this.getNulledUniverse();
+                        payload = (0, dmx_1.nulledUniverse)();
                     }
                     else {
                         payload = {};
                         universes.forEach((universe) => {
-                            payload[parseInt(universe, 10)] = this.getNulledUniverse();
+                            payload[parseInt(universe, 10)] = (0, dmx_1.nulledUniverse)();
                         });
                     }
                     const out = {

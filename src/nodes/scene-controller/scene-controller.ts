@@ -1,11 +1,8 @@
 import { Node, NodeAPI, NodeDef } from "node-red";
 import { NodeMessage } from "@node-red/registry";
+import { DMXValues, nulledUniverse } from "../../lib/dmx";
 
 type SceneControllerAction = "save" | "play" | "reset";
-
-interface DMXValues {
-  [key: number]: number | undefined;
-}
 
 interface Universes {
   [key: number]: DMXValues;
@@ -336,16 +333,6 @@ class NodeHandler {
     });
   }
 
-  protected getNulledUniverse(): DMXValues {
-    const universe: DMXValues = {};
-
-    for (let ch = 1; ch <= 512; ch++) {
-      universe[ch] = 0;
-    }
-
-    return universe;
-  }
-
   protected handleReset(message: MessageIn): void {
     // TODO
     const resetScene = (scene: number) => {
@@ -366,11 +353,11 @@ class NodeHandler {
           let payload: DMXValues | Universes;
           if (universes.length === 1) {
             universe = parseInt(universes[0], 10);
-            payload = this.getNulledUniverse();
+            payload = nulledUniverse();
           } else {
             payload = {};
             universes.forEach((universe) => {
-              payload[parseInt(universe, 10)] = this.getNulledUniverse();
+              payload[parseInt(universe, 10)] = nulledUniverse();
             });
           }
 

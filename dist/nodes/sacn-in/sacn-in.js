@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sacn_1 = require("sacn");
+const dmx_1 = require("../../lib/dmx");
+const network_1 = require("../../lib/network");
 class NodeHandler {
     node;
     config;
@@ -16,18 +18,14 @@ class NodeHandler {
         this.currentUniverse = config.universe;
         this.trigger = config.trigger ?? (config.mode === "passthrough" ? "always" : "changes");
         this.interval = config.interval !== undefined && config.interval > 0 ? config.interval : 1000;
+        const network = (0, network_1.resolveNetworkOptions)(config);
         const options = {
             universes: [config.universe],
             reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
+            port: network.port,
         };
-        if (config.interface !== undefined && config.interface.length > 7) {
-            options.iface = config.interface;
-        }
-        if (config.port !== undefined && config.port > 0) {
-            options.port = config.port;
-        }
-        else {
-            options.port = 5568;
+        if (network.iface !== undefined) {
+            options.iface = network.iface;
         }
         switch (config.mode) {
             case "passthrough":
@@ -117,23 +115,16 @@ class NodeHandler {
         this.currentUniverse = universe;
         this.setStatus();
         if (this.config.clearOnUniverseChange) {
-            this.data?.set(universe, this.getNulledUniverse());
+            this.data?.set(universe, (0, dmx_1.nulledUniverse)());
             this.emitFull(universe);
         }
         else {
             this.resetKeepalive();
         }
     }
-    getNulledUniverse() {
-        const universe = {};
-        for (let ch = 1; ch <= 512; ch++) {
-            universe[ch] = 0;
-        }
-        return universe;
-    }
     applyFrame(incoming, universe) {
         const previous = this.data?.get(universe);
-        const full = this.getNulledUniverse();
+        const full = (0, dmx_1.nulledUniverse)();
         Object.keys(incoming).forEach((key) => {
             const ch = parseInt(key, 10);
             if (ch >= 1 && ch <= 512) {
@@ -161,7 +152,7 @@ class NodeHandler {
         this.resetKeepalive();
     }
     emitFull(universe) {
-        const full = this.data?.get(universe) ?? this.getNulledUniverse();
+        const full = this.data?.get(universe) ?? (0, dmx_1.nulledUniverse)();
         this.sendData({ universe, payload: full });
     }
     resetKeepalive() {

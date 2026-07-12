@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sacn_1 = require("sacn");
+const dmx_1 = require("../../lib/dmx");
+const network_1 = require("../../lib/network");
 class NodeHandler {
     node;
     config;
@@ -9,19 +11,15 @@ class NodeHandler {
     constructor(node, config) {
         this.node = node;
         this.config = config;
+        const network = (0, network_1.resolveNetworkOptions)(config);
         this.options = {
             universe: config.universe,
             reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
             minRefreshRate: config.speed !== undefined ? config.speed : 0,
+            port: network.port,
         };
-        if (config.interface !== undefined && config.interface.length > 7) {
-            this.options.iface = config.interface;
-        }
-        if (config.port !== undefined && config.port > 0) {
-            this.options.port = config.port;
-        }
-        else {
-            this.options.port = 5568;
+        if (network.iface !== undefined) {
+            this.options.iface = network.iface;
         }
         this.sACN = new sacn_1.Sender(this.options);
         this.sACN.on("error", (err) => {
@@ -36,7 +34,7 @@ class NodeHandler {
             if (this.config.blankOnClose) {
                 this.sACN
                     .send({
-                    payload: this.getBlankPayload(),
+                    payload: (0, dmx_1.nulledUniverse)(),
                     sourceName: config.sourceName,
                     priority: config.priority || 100,
                 })
@@ -63,13 +61,6 @@ class NodeHandler {
             });
         });
         this.setStatus();
-    }
-    getBlankPayload() {
-        const payload = {};
-        for (let ch = 1; ch <= 512; ch++) {
-            payload[ch] = 0;
-        }
-        return payload;
     }
     setStatus() {
         const rate = this.config.speed !== undefined && this.config.speed > 0 ? `${this.config.speed} Hz` : "once";

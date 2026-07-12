@@ -2,6 +2,8 @@ import { Node, NodeAPI, NodeDef } from "node-red";
 import { NodeMessage } from "@node-red/registry";
 import { Sender } from "sacn";
 import { Options } from "sacn/dist/packet";
+import { nulledUniverse } from "../../lib/dmx";
+import { resolveNetworkOptions } from "../../lib/network";
 
 interface SenderProps {
   universe: number;
@@ -24,10 +26,6 @@ export interface Config extends NodeDef {
   blankOnClose?: boolean;
 }
 
-interface DMXValues {
-  [key: number]: number;
-}
-
 export type MessageIn = NodeMessage;
 
 class NodeHandler {
@@ -43,18 +41,15 @@ class NodeHandler {
     this.node = node;
     this.config = config;
 
+    const network = resolveNetworkOptions(config);
     this.options = {
       universe: config.universe,
       reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
       minRefreshRate: config.speed !== undefined ? config.speed : 0,
+      port: network.port,
     };
-    if (config.interface !== undefined && config.interface.length > 7) {
-      this.options.iface = config.interface;
-    }
-    if (config.port !== undefined && config.port > 0) {
-      this.options.port = config.port;
-    } else {
-      this.options.port = 5568;
+    if (network.iface !== undefined) {
+      this.options.iface = network.iface;
     }
 
     this.sACN = new Sender(this.options);
@@ -79,7 +74,7 @@ class NodeHandler {
       if (this.config.blankOnClose) {
         this.sACN
           .send({
-            payload: this.getBlankPayload(),
+            payload: nulledUniverse(),
             sourceName: config.sourceName,
             priority: config.priority || 100,
           })
@@ -109,15 +104,6 @@ class NodeHandler {
     });
 
     this.setStatus();
-  }
-
-  protected getBlankPayload(): DMXValues {
-    const payload: DMXValues = {};
-    for (let ch = 1; ch <= 512; ch++) {
-      payload[ch] = 0;
-    }
-
-    return payload;
   }
 
   protected setStatus(): void {

@@ -1,10 +1,8 @@
 import { Node, NodeAPI, NodeDef } from "node-red";
 import { NodeMessage } from "@node-red/registry";
 import { Packet, Receiver, unstable_MergingReceiver as MergingReceiver } from "sacn";
-
-interface DMXValues {
-  [key: number]: number | undefined;
-}
+import { DMXValues, nulledUniverse } from "../../lib/dmx";
+import { resolveNetworkOptions } from "../../lib/network";
 
 interface Config extends NodeDef {
   universe: number;
@@ -56,17 +54,14 @@ class NodeHandler {
     this.interval = config.interval !== undefined && config.interval > 0 ? config.interval : 1000;
 
     // parse options for receiver instance
+    const network = resolveNetworkOptions(config);
     const options: Receiver.Props | MergingReceiver.Props = {
       universes: [config.universe],
       reuseAddr: config.reuseAddress !== undefined ? config.reuseAddress : true,
+      port: network.port,
     };
-    if (config.interface !== undefined && config.interface.length > 7) {
-      options.iface = config.interface;
-    }
-    if (config.port !== undefined && config.port > 0) {
-      options.port = config.port;
-    } else {
-      options.port = 5568;
+    if (network.iface !== undefined) {
+      options.iface = network.iface;
     }
 
     // init sacn receiver
@@ -195,7 +190,7 @@ class NodeHandler {
 
     if (this.config.clearOnUniverseChange) {
       // emit a blanked universe until real data for the new universe arrives
-      this.data?.set(universe, this.getNulledUniverse());
+      this.data?.set(universe, nulledUniverse());
       this.emitFull(universe);
     } else {
       // keep the keepalive heartbeat aligned with the new universe
@@ -203,22 +198,12 @@ class NodeHandler {
     }
   }
 
-  protected getNulledUniverse(): DMXValues {
-    const universe: DMXValues = {};
-
-    for (let ch = 1; ch <= 512; ch++) {
-      universe[ch] = 0;
-    }
-
-    return universe;
-  }
-
   protected applyFrame(incoming: DMXValues, universe: number): { payload: DMXValues; changed: boolean } {
     // an sACN data packet always describes the complete universe; channels that are
     // absent from the received payload are deliberately 0, not unchanged. Rebuild the
     // full state from a zeroed base so a channel fading to 0 is reflected correctly.
     const previous = this.data?.get(universe);
-    const full = this.getNulledUniverse();
+    const full = nulledUniverse();
 
     Object.keys(incoming).forEach((key) => {
       const ch = parseInt(key, 10);
@@ -256,7 +241,7 @@ class NodeHandler {
   }
 
   protected emitFull(universe: number): void {
-    const full = this.data?.get(universe) ?? this.getNulledUniverse();
+    const full = this.data?.get(universe) ?? nulledUniverse();
     this.sendData({ universe, payload: full });
   }
 
