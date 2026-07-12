@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sacn_1 = require("sacn");
 const dmx_1 = require("../../lib/dmx");
 const network_1 = require("../../lib/network");
+const interfaces_1 = require("../../lib/interfaces");
 class NodeHandler {
     node;
     config;
@@ -178,6 +179,7 @@ class NodeHandler {
     }
 }
 exports.default = (RED) => {
+    (0, interfaces_1.registerInterfaceEndpoint)(RED);
     RED.nodes.registerType("sacn-in", function (config) {
         RED.nodes.createNode(this, config);
         new NodeHandler(this, config);

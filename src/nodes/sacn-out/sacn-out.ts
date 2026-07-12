@@ -4,6 +4,7 @@ import { Sender } from "sacn";
 import { Options } from "sacn/dist/packet";
 import { nulledUniverse, ValueScale } from "../../lib/dmx";
 import { resolveNetworkOptions } from "../../lib/network";
+import { registerInterfaceEndpoint } from "../../lib/interfaces";
 
 interface SenderProps {
   universe: number;
@@ -124,6 +125,8 @@ class NodeHandler {
 }
 
 export default (RED: NodeAPI): void => {
+  registerInterfaceEndpoint(RED);
+
   RED.nodes.registerType("sacn-out", function (this: Node<Config>, config: Config) {
     RED.nodes.createNode(this, config);
 

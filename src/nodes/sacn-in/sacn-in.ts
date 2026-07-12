@@ -3,6 +3,7 @@ import { NodeMessage } from "@node-red/registry";
 import { Packet, Receiver, unstable_MergingReceiver as MergingReceiver } from "sacn";
 import { DMXValues, fromPercent, nulledUniverse, ValueScale } from "../../lib/dmx";
 import { resolveNetworkOptions } from "../../lib/network";
+import { registerInterfaceEndpoint } from "../../lib/interfaces";
 
 interface Config extends NodeDef {
   universe: number;
@@ -275,6 +276,8 @@ class NodeHandler {
 }
 
 export default (RED: NodeAPI): void => {
+  registerInterfaceEndpoint(RED);
+
   RED.nodes.registerType("sacn-in", function (this: Node<Config>, config: Config) {
     RED.nodes.createNode(this, config);
 
