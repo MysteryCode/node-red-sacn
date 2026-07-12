@@ -16,7 +16,7 @@ const def: EditorNodeDef<Defaults> = {
   color: "#dcc515",
   defaults: {
     name: {
-      value: "Scene-Controller",
+      value: "",
     },
     universe: {
       value: 1,
@@ -48,7 +48,7 @@ const def: EditorNodeDef<Defaults> = {
   paletteLabel: "sACN out",
   icon: "font-awesome/fa-lightbulb-o",
   label: function () {
-    return this.name || "sACN";
+    return this.name || `sACN out · U${this.universe}`;
   },
   labelStyle: function () {
     return this.name ? "node_label_italic" : "";
