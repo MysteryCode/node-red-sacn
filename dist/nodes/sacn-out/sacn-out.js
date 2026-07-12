@@ -32,10 +32,18 @@ class NodeHandler {
             this.sACN.close();
         });
         this.node.on("input", (msg) => {
-            void this.sACN.send({
+            this.sACN
+                .send({
                 payload: msg.payload,
                 sourceName: config.sourceName,
                 priority: config.priority || 100,
+            })
+                .then(() => {
+                this.setStatus();
+            })
+                .catch((err) => {
+                this.node.error(err, msg);
+                this.node.status({ fill: "red", shape: "dot", text: err.message || "send failed" });
             });
         });
         this.setStatus();

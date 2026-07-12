@@ -68,11 +68,21 @@ class NodeHandler {
     });
 
     this.node.on("input", (msg) => {
-      void this.sACN.send({
-        payload: msg.payload as number[],
-        sourceName: config.sourceName,
-        priority: config.priority || 100,
-      });
+      this.sACN
+        .send({
+          payload: msg.payload as number[],
+          sourceName: config.sourceName,
+          priority: config.priority || 100,
+        })
+        .then(() => {
+          this.setStatus();
+        })
+        .catch((err: Error) => {
+          // a failed send rejects the promise; handle it so it does not become
+          // an unhandled rejection (which would terminate the process)
+          this.node.error(err, msg);
+          this.node.status({ fill: "red", shape: "dot", text: err.message || "send failed" });
+        });
     });
 
     this.setStatus();
