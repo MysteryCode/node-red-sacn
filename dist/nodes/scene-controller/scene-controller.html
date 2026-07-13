@@ -16,6 +16,23 @@
             <option value="absolute" data-i18n="scene-controller.label.values_absolute"></option>
         </select>
     </div>
+    <div class="form-row">
+        <label for="node-input-playMode">
+            <i class="fa fa-layer-group"></i>
+            <span data-i18n="scene-controller.label.playMode"></span>
+        </label>
+        <select id="node-input-playMode" style="width:70%;">
+            <option value="switch" selected data-i18n="scene-controller.label.playMode_switch"></option>
+            <option value="add" data-i18n="scene-controller.label.playMode_add"></option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-blackoutOnStop" style="width:auto;">
+            <i class="fa fa-power-off"></i>
+            <span data-i18n="scene-controller.label.blackoutOnStop"></span>
+        </label>
+        <input type="checkbox" id="node-input-blackoutOnStop" style="display:inline-block; width:auto; vertical-align:top;">
+    </div>
 </script>
 <script type="text/html" data-help-name="scene-controller">
     <p>Records DMX scenes and plays them back later.</p>
@@ -28,6 +45,8 @@
     <ul>
         <li><code>save</code> - store the <code>payload</code> as the given scene.</li>
         <li><code>play</code> - emit a previously saved scene.</li>
+        <li><code>stop</code> - stop emitting the given scene but keep it stored. If the <b>Send zero values on stop</b>
+            option is enabled and no other scene remains active, a nulled universe is emitted once.</li>
         <li><code>reset</code> - clear the given scene (or all scenes) and, if it is currently playing, emit a nulled universe.</li>
     </ul>
     <p>
@@ -35,12 +54,19 @@
         The accepted value range follows the <b>Values</b> setting: a percentage (<code>0</code>–<code>100</code>)
         or raw DMX values (<code>0</code>–<code>255</code>).
     </p>
+    <p>
+        The <b>Playback</b> setting controls what happens when <code>play</code> is triggered while another scene is
+        already active. In <b>Switch</b> mode the new scene replaces the running look. In <b>Add</b> mode scenes are
+        stacked and combined per channel by HTP (highest value wins); <code>stop</code> or <code>reset</code> of a single
+        scene then re-emits the remaining combined look. Only when the last active scene is stopped or reset does the
+        output go dark.
+    </p>
     <h3>Inputs</h3>
     <dl class="message-properties">
         <dt>action <span class="property-type">string</span></dt>
-        <dd>Operation to perform: <code>save</code>, <code>play</code> or <code>reset</code>.</dd>
+        <dd>Operation to perform: <code>save</code>, <code>play</code>, <code>stop</code> or <code>reset</code>.</dd>
         <dt>scene <span class="property-type">number</span></dt>
-        <dd>The scene to save or play. Required for <code>save</code> and <code>play</code>; optional for <code>reset</code> (omit to reset all scenes).</dd>
+        <dd>The scene to save, play or stop. Required for <code>save</code>, <code>play</code> and <code>stop</code>; optional for <code>reset</code> (omit to reset all scenes).</dd>
         <dt class="optional">universe <span class="property-type">number</span></dt>
         <dd>The universe the payload belongs to. Required when a single universe is provided as an array or a flat value object.</dd>
         <dt>payload <span class="property-type">array | object</span></dt>
@@ -61,6 +87,8 @@
         <dd>The scene that is played.</dd>
         <dt class="optional">reset <span class="property-type">boolean</span></dt>
         <dd>Present and <code>true</code> for a reset message; otherwise absent.</dd>
+        <dt class="optional">stopped <span class="property-type">boolean</span></dt>
+        <dd>Present and <code>true</code> for the nulled message emitted on <code>stop</code>; otherwise absent.</dd>
     </dl>
     <h4>Multiple universes</h4>
     <dl class="message-properties">
@@ -72,6 +100,8 @@
         <dd>The scene that is played.</dd>
         <dt class="optional">reset <span class="property-type">boolean</span></dt>
         <dd>Present and <code>true</code> for a reset message; otherwise absent.</dd>
+        <dt class="optional">stopped <span class="property-type">boolean</span></dt>
+        <dd>Present and <code>true</code> for the nulled message emitted on <code>stop</code>; otherwise absent.</dd>
     </dl>
     <h3>References</h3>
     <ul>
@@ -90,6 +120,13 @@
                 values: {
                     value: "percent",
                     required: true,
+                },
+                playMode: {
+                    value: "switch",
+                    required: true,
+                },
+                blackoutOnStop: {
+                    value: false,
                 },
             },
             inputs: 1,

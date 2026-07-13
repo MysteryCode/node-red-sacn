@@ -5,7 +5,11 @@
       "fallback": "Szenen-Controller",
       "values": "Werte",
       "values_percent": "Prozent (0–100)",
-      "values_absolute": "Absolut (0–255)"
+      "values_absolute": "Absolut (0–255)",
+      "playMode": "Wiedergabe",
+      "playMode_switch": "Umschalten (neue Szene ersetzt)",
+      "playMode_add": "Addieren (Szenen stapeln, HTP)",
+      "blackoutOnStop": "Beim Stoppen Nullwerte senden"
     }
   }
 }

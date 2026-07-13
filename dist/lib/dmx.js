@@ -1,6 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MAX_ABSOLUTE = exports.MAX_PERCENT = exports.LAST_UNIVERSE = exports.FIRST_UNIVERSE = exports.LAST_CHANNEL = exports.FIRST_CHANNEL = void 0;
+exports.MAX_ABSOLUTE =
+  exports.MAX_PERCENT =
+  exports.LAST_UNIVERSE =
+  exports.FIRST_UNIVERSE =
+  exports.LAST_CHANNEL =
+  exports.FIRST_CHANNEL =
+    void 0;
 exports.maxValue = maxValue;
 exports.fromPercent = fromPercent;
 exports.nulledUniverse = nulledUniverse;
@@ -11,15 +17,15 @@ exports.LAST_UNIVERSE = 63999;
 exports.MAX_PERCENT = 100;
 exports.MAX_ABSOLUTE = 255;
 function maxValue(scale) {
-    return scale === "absolute" ? exports.MAX_ABSOLUTE : exports.MAX_PERCENT;
+  return scale === "absolute" ? exports.MAX_ABSOLUTE : exports.MAX_PERCENT;
 }
 function fromPercent(percent, scale) {
-    return scale === "absolute" ? Math.round(percent * 2.55) : percent;
+  return scale === "absolute" ? Math.round(percent * 2.55) : percent;
 }
 function nulledUniverse() {
-    const universe = {};
-    for (let channel = exports.FIRST_CHANNEL; channel <= exports.LAST_CHANNEL; channel++) {
-        universe[channel] = 0;
-    }
-    return universe;
+  const universe = {};
+  for (let channel = exports.FIRST_CHANNEL; channel <= exports.LAST_CHANNEL; channel++) {
+    universe[channel] = 0;
+  }
+  return universe;
 }
