@@ -17,7 +17,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "24"
-          registry-url: "https://registry.npmjs.com/"
+          registry-url: "https://registry.npmjs.org/"
+      # trusted publishing (OIDC) requires npm >= 11.5.1; Node 24 ships an older npm
+      - run: npm install -g npm@latest
       - run: npm ci
       - name: Type-check
         run: npx tsc --noEmit
@@ -36,9 +38,8 @@ jobs:
           rm -rf *.tgz
       - name: Publish to npmjs.com
         if: steps.package.outputs.private == '' || steps.package.outputs.private == 'false' || steps.package.outputs.private == false
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # trusted publisher (OIDC): no NPM_TOKEN needed, provenance is generated automatically
+        run: npm publish --access public
       - name: Create package
         run: |
           npm pack
