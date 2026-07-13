@@ -118,10 +118,12 @@ const def: EditorNodeDef<Defaults> = {
   },
   inputs: 1,
   outputs: 1,
-  paletteLabel: "sACN in",
+  paletteLabel: function () {
+    return this._("sacn-in.paletteLabel");
+  },
   icon: "sacn-in.svg",
   label: function () {
-    return this.name || `sACN in · U${this.universe}`;
+    return this.name || this._("sacn-in.label.fallback", { universe: this.universe });
   },
   labelStyle: function () {
     return this.name ? "node_label_italic" : "";

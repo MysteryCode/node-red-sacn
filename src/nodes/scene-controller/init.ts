@@ -20,10 +20,12 @@ const def: EditorNodeDef<Defaults> = {
   },
   inputs: 1,
   outputs: 1,
-  paletteLabel: "Scene-Controller",
+  paletteLabel: function () {
+    return this._("scene-controller.paletteLabel");
+  },
   icon: "scene-controller.svg",
   label: function () {
-    return this.name || "Scene-Controller";
+    return this.name || this._("scene-controller.label.fallback");
   },
   labelStyle: function () {
     return this.name ? "node_label_italic" : "";

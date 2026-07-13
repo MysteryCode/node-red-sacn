@@ -1,6 +1,8 @@
 {
   "sacn-in": {
+    "paletteLabel": "sACN Eingang",
     "label": {
+      "fallback": "sACN Eingang · U__universe__",
       "interface": "IP-Adresse des Interfaces",
       "mode": "Modus",
       "mode_direct": "Direkt",
